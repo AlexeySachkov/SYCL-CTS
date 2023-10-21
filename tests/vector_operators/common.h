@@ -3,8 +3,8 @@
 #include "../common/common.h"
 #include "../common/common_vec.h"
 
-#include <array>
 #include <algorithm>
+#include <array>
 
 namespace vector::operators {
 enum arithmetic_operation_kind : int {
@@ -197,29 +197,93 @@ sycl::buffer<sycl::vec<T, N>, 1> do_addition_test(sycl::queue q, T value_a,
 
 template <typename T, int N>
 sycl::buffer<sycl::vec<T, N>, 1> do_substraction_test(sycl::queue q, T value_a,
+                                                      T value_b) {
+  sycl::buffer<sycl::vec<T, N>, 1> results(
+      sycl::range{arithmetic_operation_kind::size});
+
+  q.submit([&](sycl::handler& cgh) {
+    sycl::accessor acc(results, cgh, sycl::write_only);
+    cgh.single_task<
+        arithmetic_kernel<arithmetic_operation::substraction, T, N>>([=]() {
+      auto vec1 = sycl::vec<T, N>(value_a);
+      auto vec2 = sycl::vec<T, N>(value_b);
+
+      acc[vec_vec] = vec1 - vec2;
+      DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, -);
+      acc[vec_scalar] = vec1 - value_b;
+      DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, -);
+      DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, -);
+      DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, -);
+      acc[scalar_vec] = value_a - vec2;
+      DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, -);
+    });
+  });
+
+  return results;
+}
+
+template <typename T, int N>
+sycl::buffer<sycl::vec<T, N>, 1> do_division_test(sycl::queue q, T value_a,
                                                   T value_b) {
   sycl::buffer<sycl::vec<T, N>, 1> results(
       sycl::range{arithmetic_operation_kind::size});
 
   q.submit([&](sycl::handler& cgh) {
     sycl::accessor acc(results, cgh, sycl::write_only);
-    cgh.single_task<arithmetic_kernel<arithmetic_operation::substraction, T, N>>(
+    cgh.single_task<arithmetic_kernel<arithmetic_operation::division, T, N>>(
         [=]() {
           auto vec1 = sycl::vec<T, N>(value_a);
           auto vec2 = sycl::vec<T, N>(value_b);
 
-          acc[vec_vec] = vec1 - vec2;
-          DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, -);
-          acc[vec_scalar] = vec1 - value_b;
-          DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, -);
-          DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, -);
-          DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, -);
-          acc[scalar_vec] = value_a - vec2;
-          DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, -);
+          acc[vec_vec] = vec1 / vec2;
+          DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, /);
+          acc[vec_scalar] = vec1 / value_b;
+          DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, /);
+          DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, /);
+          DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, /);
+          acc[scalar_vec] = value_a / vec2;
+          DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, /);
         });
   });
 
   return results;
+}
+
+template <typename T, int N>
+sycl::buffer<sycl::vec<T, N>, 1> do_multiplication_test(sycl::queue q,
+                                                        T value_a, T value_b) {
+  sycl::buffer<sycl::vec<T, N>, 1> results(
+      sycl::range{arithmetic_operation_kind::size});
+
+  q.submit([&](sycl::handler& cgh) {
+    sycl::accessor acc(results, cgh, sycl::write_only);
+    cgh.single_task<
+        arithmetic_kernel<arithmetic_operation::multiplication, T, N>>([=]() {
+      auto vec1 = sycl::vec<T, N>(value_a);
+      auto vec2 = sycl::vec<T, N>(value_b);
+
+      acc[vec_vec] = vec1 * vec2;
+      DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, *);
+      acc[vec_scalar] = vec1 * value_b;
+      DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, *);
+      DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, *);
+      DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, *);
+      acc[scalar_vec] = value_a * vec2;
+      DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, *);
+    });
+  });
+
+  return results;
+}
+
+template <typename Buf, typename T>
+void check_results(Buf buf, T reference) {
+  auto acc = buf.get_host_access();
+  for (size_t i = 0; i < acc.size(); ++i) {
+    for (size_t j = 0; j < acc[i].size(); ++j) {
+      CHECK(acc[i][j] == reference);
+    }
+  }
 }
 
 template <typename T, int N>
@@ -231,27 +295,16 @@ void do_arithmetic_test() {
 
   auto addition_results = do_addition_test<T, N>(q, value_a, value_b);
   auto substraction_results = do_substraction_test<T, N>(q, value_a, value_b);
+  auto division_results = do_division_test<T, N>(q, value_a, value_b);
+  auto multiplication_results =
+      do_multiplication_test<T, N>(q, value_a, value_b);
 
   q.wait();
 
-  {
-    auto acc = addition_results.get_host_access();
-    std::array<T, N> reference;
-    std::fill(reference.begin(), reference.end(), value_a + value_b);
-
-    for (size_t i = 0; i < acc.size(); ++i) {
-      CHECK(check_vector_values(acc[i], reference.data()));
-    }
-  }
-
-  {
-    auto acc = substraction_results.get_host_access();
-    std::array<T, N> reference;
-    std::fill(reference.begin(), reference.end(), value_a - value_b);
-
-    for (size_t i = 0; i < acc.size(); ++i) {
-      CHECK(check_vector_values(acc[i], reference.data()));
-    }
-  }
+  check_results(addition_results, value_a + value_b);
+  check_results(substraction_results, value_a - value_b);
+  check_results(division_results, value_a / value_b);
+  check_results(multiplication_results, value_a * value_b);
 }
+
 }  // namespace vector::operators
