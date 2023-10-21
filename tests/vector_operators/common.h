@@ -2,6 +2,7 @@
 
 #include "../common/common.h"
 #include "../common/common_vec.h"
+#include "../common/type_coverage.h"
 
 #include <algorithm>
 #include <array>
@@ -399,7 +400,8 @@ sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
 // C++17 does not allow ++ or -- (either prefix or postfix) for the bool type.
 // Therefore, the test is essentially skipped for bool.
 template <int N>
-sycl::buffer<sycl::vec<bool, N>, 1> do_inc_dec_test(sycl::queue q, bool value_a) {
+sycl::buffer<sycl::vec<bool, N>, 1> do_inc_dec_test(sycl::queue q,
+                                                    bool value_a) {
   sycl::buffer<sycl::vec<bool, N>, 1> results(
       sycl::range{increment_decrement_check_index::total_inc_dec});
   return results;
@@ -408,6 +410,7 @@ sycl::buffer<sycl::vec<bool, N>, 1> do_inc_dec_test(sycl::queue q, bool value_a)
 template <typename T, int N>
 void check_all_of_vec(sycl::vec<T, N> v, T reference) {
   for (int i = 0; i < N; ++i) {
+    INFO("Validating results of vector element #" << i);
     CHECK(v[i] == reference);
   }
 }
@@ -416,6 +419,69 @@ template <typename Buf, typename T>
 void check_results(Buf buf, T reference) {
   auto acc = buf.get_host_access();
   for (size_t i = 0; i < acc.size(); ++i) {
+    INFO("Validating results for operation #" << i);
+    check_all_of_vec(acc[i], reference);
+  }
+}
+
+std::string to_string(arithmetic_operation op, arithmetic_operation_kind k) {
+  std::string result;
+  switch (op) {
+    case arithmetic_operation::addition:
+      result = "operator+";
+      break;
+    case arithmetic_operation::substraction:
+      result = "operator-";
+      break;
+    case arithmetic_operation::division:
+      result = "operator/";
+      break;
+    case arithmetic_operation::multiplication:
+      result = "operator*";
+      break;
+    default:
+      result = "unknown operation";
+  }
+
+  switch (k) {
+    case vec_vec:
+      result += "(vec, vec)";
+      break;
+    case vec_swizzle:
+      result += "(vec, swizzle)";
+      break;
+    case vec_scalar:
+      result += "(vec, scalar)";
+      break;
+    case swizzle_vec:
+      result += "(swizzle, vec)";
+      break;
+    case swizzle_swizzle:
+      result += "(swizzle, swizzle)";
+      break;
+    case swizzle_scalar:
+      result += "(swizzle, scalar)";
+      break;
+    case scalar_vec:
+      result += "(scalar, vec)";
+      break;
+    case scalar_swizzle:
+      result += "(scalar, swizzle)";
+      break;
+    default:
+      result += "unknown arguments";
+  }
+
+  return result;
+}
+
+template <arithmetic_operation Op, typename Buf, typename T>
+void check_binop_results(Buf buf, T reference) {
+  auto acc = buf.get_host_access();
+  for (size_t i = 0; i < acc.size(); ++i) {
+    INFO("Validating results of "
+         << type_name_string<typename Buf::value_type>::get(type_name<T>())
+         << "::" << to_string(Op, static_cast<arithmetic_operation_kind>(i)));
     check_all_of_vec(acc[i], reference);
   }
 }
@@ -436,11 +502,15 @@ void do_arithmetic_test() {
 
   q.wait();
 
-  check_results(addition_results, value_a + value_b);
-  check_results(substraction_results, value_a - value_b);
-  check_results(division_results, value_a / value_b);
-  check_results(multiplication_results, value_a * value_b);
-  if constexpr(!std::is_same_v<T, bool>) {
+  check_binop_results<arithmetic_operation::addition>(addition_results,
+                                                      value_a + value_b);
+  check_binop_results<arithmetic_operation::substraction>(substraction_results,
+                                                          value_a - value_b);
+  check_binop_results<arithmetic_operation::division>(division_results,
+                                                      value_a / value_b);
+  check_binop_results<arithmetic_operation::multiplication>(
+      multiplication_results, value_a * value_b);
+  if constexpr (!std::is_same_v<T, bool>) {
     auto acc = inc_dec_results.get_host_access();
     check_all_of_vec(acc[post_inc_vec_return], value_a);
     check_all_of_vec(acc[post_inc_vec_afterwards], value_a + 1);
