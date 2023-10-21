@@ -371,6 +371,7 @@ sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
           acc[pre_inc_vec_return] = ++copy;
           acc[pre_inc_vec_afterwards] = copy;
 
+          copy = vec1;
           DO_SWIZZLE_PRE_OP(acc[pre_inc_swizzle_return], copy, ++);
           acc[pre_inc_swizzle_afterwards] = copy;
 
@@ -378,6 +379,7 @@ sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
           acc[post_dec_vec_return] = copy--;
           acc[post_dec_vec_afterwards] = copy;
 
+          copy = vec1;
           DO_SWIZZLE_POST_OP(acc[post_dec_swizzle_return], copy, --);
           acc[post_dec_swizzle_afterwards] = copy;
 
@@ -385,6 +387,7 @@ sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
           acc[pre_dec_vec_return] = --copy;
           acc[pre_dec_vec_afterwards] = copy;
 
+          copy = vec1;
           DO_SWIZZLE_PRE_OP(acc[pre_dec_swizzle_return], copy, --);
           acc[pre_dec_swizzle_afterwards] = copy;
         });
