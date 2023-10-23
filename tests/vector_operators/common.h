@@ -349,8 +349,11 @@ sycl::buffer<sycl::vec<T, N>, 1> do_multiplication_test(sycl::queue q,
 
 template <typename T, int N>
 sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
+  INFO("Submitting kernel for testing increment/decrement operations");
   sycl::buffer<sycl::vec<T, N>, 1> results(
       sycl::range{increment_decrement_check_index::total_inc_dec});
+
+  throw new std::exception();
 
   q.submit([&](sycl::handler& cgh) {
     sycl::accessor acc(results, cgh, sycl::write_only);
@@ -499,6 +502,15 @@ void do_arithmetic_test() {
   auto multiplication_results =
       do_multiplication_test<T, N>(q, value_a, value_b);
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
+  // TODO: arithmetic operators: %
+  // TODO: assignment operators: +=, -=, *=, /=, %=
+  // TODO: logical operators: &&, ||, !
+  // TODO: relational operators: ==, !=, <=, >=, <, >
+  // TODO: bitwise operators: >>, <<, |, ^, &
+  // TODO: bitwise assignment operators: |=, ^=, &=, >>=, <<=
+  // TODO: subscript operator: []
+  // TODO: conversion operators: vector_t(), DataT()
+  // TODO: assignment operators: =
 
   q.wait();
 
