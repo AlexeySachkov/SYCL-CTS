@@ -194,11 +194,49 @@ struct check_arithmetic_binary_operator<
     {
       INFO("Submitting a kernel");
       q.submit([&](sycl::handler& cgh) {
-        sycl::accessor acc(results, cgh, sycl::write_only);
+        sycl::accessor acc(results, cgh);
         arithmetic_binary_operator_kernel_functor<Op, T, N> f(acc, value_a, value_b);
         cgh.single_task(f);
       });
     }
+    INFO("Validating results");
+    check_binop_results<Op>(results, reference<Op>(value_a, value_b));
+  }
+};
+
+template <typename T, typename SizeT, typename OpT,
+          typename Enable = void>
+struct check_arithmetic_binary_assignment_operator {
+  void operator()(const std::string&) {}
+};
+
+template <typename T, typename SizeT, typename OpT>
+struct check_arithmetic_binary_assignment_operator<
+    T, SizeT, OpT,
+    std::enable_if_t<OpT::value != arithmetic_binary_operator::reminder ||
+                     (!std::is_floating_point_v<T> &&
+                      !std::is_same_v<T, sycl::half>)>> {
+  static constexpr arithmetic_binary_operator Op = OpT::value;
+  static constexpr int N = SizeT::value;
+  void operator()(const std::string &operator_name) {
+    INFO("Checking binary arithmetic asignment operator: " << operator_name);
+
+    auto q = sycl_cts::util::get_cts_object::queue();
+
+    T value_a = static_cast<T>(42);
+    T value_b = static_cast<T>(2);
+
+    sycl::buffer<sycl::vec<T, N>, 1> results(
+        sycl::range{arithmetic_operation_kind::assignment_size});
+    {
+      INFO("Submitting a kernel");
+      q.submit([&](sycl::handler& cgh) {
+        sycl::accessor acc(results, cgh);
+        arithmetic_binary_assignment_operator_kernel_functor<Op, T, N> f(acc, value_a, value_b);
+        cgh.single_task(f);
+      }).wait();
+    }
+
     INFO("Validating results");
     check_binop_results<Op>(results, reference<Op>(value_a, value_b));
   }
@@ -282,12 +320,21 @@ void check_all_operators() {
                                                             "operator%");
   for_all_combinations<check_arithmetic_binary_operator, T, std::integral_constant<int, N>>(arithmetic_binary_ops);
 
+  auto arithmetic_binary_assignment_ops = value_pack<
+      arithmetic_binary_operator, arithmetic_binary_operator::plus,
+      arithmetic_binary_operator::minus, arithmetic_binary_operator::multiply,
+      arithmetic_binary_operator::divide,
+      arithmetic_binary_operator::reminder>::generate_named("operator+=",
+                                                            "operator-=",
+                                                            "operator*=",
+                                                            "operator/=",
+                                                            "operator%=");
+  for_all_combinations<check_arithmetic_binary_assignment_operator, T, std::integral_constant<int, N>>(arithmetic_binary_assignment_ops);
+
   T value_a = static_cast<T>(42);
   T value_b = static_cast<T>(2);
 
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
-  // TODO: arithmetic operators: %
-  // TODO: assignment operators: +=, -=, *=, /=, %=
   // TODO: logical operators: &&, ||, !
   // TODO: relational operators: ==, !=, <=, >=, <, >
   // TODO: bitwise operators: >>, <<, |, ^, &
