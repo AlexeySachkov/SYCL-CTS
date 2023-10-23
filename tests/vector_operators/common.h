@@ -4,21 +4,12 @@
 #include "../common/common_vec.h"
 #include "../common/type_coverage.h"
 
+#include "kernel_helpers.h"
+
 #include <algorithm>
 #include <array>
 
 namespace vector::operators {
-enum arithmetic_operation_kind : int {
-  vec_vec = 0,
-  vec_swizzle,
-  vec_scalar,
-  swizzle_vec,
-  swizzle_swizzle,
-  swizzle_scalar,
-  scalar_vec,
-  scalar_swizzle,
-  size
-};
 
 enum increment_decrement_check_index : int {
   post_inc_vec_return,
@@ -45,307 +36,173 @@ enum class arithmetic_operation {
   multiplication,
   substraction,
   division,
+  reminder,
   increment_decrement
 };
+
+std::string to_string(arithmetic_operation op,
+                      arithmetic_operation_kind k = size) {
+  std::string result;
+  switch (op) {
+    case arithmetic_operation::addition:
+      result = "operator+";
+      break;
+    case arithmetic_operation::substraction:
+      result = "operator-";
+      break;
+    case arithmetic_operation::division:
+      result = "operator/";
+      break;
+    case arithmetic_operation::multiplication:
+      result = "operator*";
+      break;
+    case arithmetic_operation::reminder:
+      result = "operator%";
+      break;
+    default:
+      result = "unknown operation";
+  }
+
+  switch (k) {
+    case vec_vec:
+      result += "(vec, vec)";
+      break;
+    case vec_swizzle:
+      result += "(vec, swizzle)";
+      break;
+    case vec_scalar:
+      result += "(vec, scalar)";
+      break;
+    case swizzle_vec:
+      result += "(swizzle, vec)";
+      break;
+    case swizzle_swizzle:
+      result += "(swizzle, swizzle)";
+      break;
+    case swizzle_scalar:
+      result += "(swizzle, scalar)";
+      break;
+    case scalar_vec:
+      result += "(scalar, vec)";
+      break;
+    case scalar_swizzle:
+      result += "(scalar, swizzle)";
+      break;
+    case size:
+      // do nothing
+      break;
+    default:
+      result += "unknown arguments";
+  }
+
+  return result;
+}
+
+std::string to_string( arithmetic_operation_kind k) {
+  switch (k) {
+    case vec_vec:
+      return "vec op vec";
+    case vec_swizzle:
+      return "vec op swizzle";
+    case vec_scalar:
+      return "vec op scalar";
+    case swizzle_vec:
+      return "swizzle op vec";
+    case swizzle_swizzle:
+      return "swizzle op swizzle";
+    case swizzle_scalar:
+      return "swizzle op scalar";
+    case scalar_vec:
+      return "scalar op vec";
+    case scalar_swizzle:
+      return "scalar op swizzle";
+    default:
+      return "unknown test case";
+  }
+}
+
+template <typename T, int N>
+void check_all_of_vec(sycl::vec<T, N> v, T reference) {
+  for (int i = 0; i < N; ++i) {
+    INFO("of vector element #" << i);
+    CHECK(v[i] == reference);
+  }
+}
+
+template <typename Buf, typename T>
+void check_results(Buf buf, T reference) {
+  auto acc = buf.get_host_access();
+  for (size_t i = 0; i < acc.size(); ++i) {
+    INFO("Validating results for operation #" << i);
+    check_all_of_vec(acc[i], reference);
+  }
+}
+
+template <arithmetic_binary_operator Op, typename Buf, typename T>
+void check_binop_results(Buf buf, T reference) {
+  auto acc = buf.get_host_access();
+  for (size_t i = 0; i < acc.size(); ++i) {
+    INFO(
+        "of use case " << to_string(static_cast<arithmetic_operation_kind>(i)));
+    check_all_of_vec(acc[i], reference);
+  }
+}
 
 template <arithmetic_operation op, typename T, int N>
 class arithmetic_kernel;
 
-#define DO_VEC_SWIZZLE_OP(result, v1, v2, op)                              \
-  if constexpr (v1.size() == 1) {                                          \
-    result = v1 op v2.template swizzle<sycl::elem::s0>();                  \
-  } else if constexpr (v1.size() == 2) {                                   \
-    result = v1 op v2.template swizzle<sycl::elem::s0, sycl::elem::s1>();  \
-  } else if constexpr (v1.size() == 3) {                                   \
-    result = v1 op v2.template swizzle<sycl::elem::s0, sycl::elem::s1,     \
-                                       sycl::elem::s2>();                  \
-  } else if constexpr (v1.size() == 4) {                                   \
-    result = v1 op v2.template swizzle<sycl::elem::s0, sycl::elem::s1,     \
-                                       sycl::elem::s2, sycl::elem::s3>();  \
-  } else if constexpr (v1.size() == 8) {                                   \
-    result = v1 op v2.template swizzle<                                    \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,    \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7>(); \
-  } else if constexpr (v1.size() == 16) {                                  \
-    result = v1 op v2.template swizzle<                                    \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,    \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,    \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,    \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>(); \
+template <arithmetic_binary_operator Op, typename T>
+T reference(T a, T b) {
+  if constexpr (arithmetic_binary_operator::plus == Op)
+    return a + b;
+  else if constexpr (arithmetic_binary_operator::minus == Op)
+    return a - b;
+  else if constexpr (arithmetic_binary_operator::multiply == Op)
+    return a * b;
+  else if constexpr (arithmetic_binary_operator::divide == Op)
+    return a / b;
+  else {
+    static_assert(arithmetic_binary_operator::reminder == Op);
+    return a % b;
   }
-
-#define DO_SCALAR_SWIZZLE_OP(result, s, v, op)                             \
-  if constexpr (v.size() == 1) {                                           \
-    result = s op v.template swizzle<sycl::elem::s0>();                    \
-  } else if constexpr (v.size() == 2) {                                    \
-    result = s op v.template swizzle<sycl::elem::s0, sycl::elem::s1>();    \
-  } else if constexpr (v.size() == 3) {                                    \
-    result = s op v.template swizzle<sycl::elem::s0, sycl::elem::s1,       \
-                                     sycl::elem::s2>();                    \
-  } else if constexpr (v.size() == 4) {                                    \
-    result = s op v.template swizzle<sycl::elem::s0, sycl::elem::s1,       \
-                                     sycl::elem::s2, sycl::elem::s3>();    \
-  } else if constexpr (v.size() == 8) {                                    \
-    result = s op v.template swizzle<                                      \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,    \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7>(); \
-  } else if constexpr (v.size() == 16) {                                   \
-    result = s op v.template swizzle<                                      \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,    \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,    \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,    \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>(); \
-  }
-
-#define DO_SWIZZLE_SWIZZLE_OP(result, v1, v2, op)                             \
-  if constexpr (v1.size() == 1) {                                             \
-    result = v1.template swizzle<sycl::elem::s0>()                            \
-                 op v2.template swizzle<sycl::elem::s0>();                    \
-  } else if constexpr (v1.size() == 2) {                                      \
-    result = v1.template swizzle<sycl::elem::s0, sycl::elem::s1>()            \
-                 op v2.template swizzle<sycl::elem::s0, sycl::elem::s1>();    \
-  } else if constexpr (v1.size() == 3) {                                      \
-    result =                                                                  \
-        v1.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2>() \
-            op v2.template swizzle<sycl::elem::s0, sycl::elem::s1,            \
-                                   sycl::elem::s2>();                         \
-  } else if constexpr (v1.size() == 4) {                                      \
-    result = v1.template swizzle<sycl::elem::s0, sycl::elem::s1,              \
-                                 sycl::elem::s2, sycl::elem::s3>()            \
-                 op v2.template swizzle<sycl::elem::s0, sycl::elem::s1,       \
-                                        sycl::elem::s2, sycl::elem::s3>();    \
-  } else if constexpr (v1.size() == 8) {                                      \
-    result =                                                                  \
-        v1.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2,   \
-                            sycl::elem::s3, sycl::elem::s4, sycl::elem::s5,   \
-                            sycl::elem::s6, sycl::elem::s7>() op v2           \
-            .template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, \
-                              sycl::elem::s3, sycl::elem::s4, sycl::elem::s5, \
-                              sycl::elem::s6, sycl::elem::s7>();              \
-  } else if constexpr (v1.size() == 16) {                                     \
-    result =                                                                  \
-        v1.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2,   \
-                            sycl::elem::s3, sycl::elem::s4, sycl::elem::s5,   \
-                            sycl::elem::s6, sycl::elem::s7, sycl::elem::s8,   \
-                            sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,   \
-                            sycl::elem::sC, sycl::elem::sD, sycl::elem::sE,   \
-                            sycl::elem::sF>() op v2                           \
-            .template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, \
-                              sycl::elem::s3, sycl::elem::s4, sycl::elem::s5, \
-                              sycl::elem::s6, sycl::elem::s7, sycl::elem::s8, \
-                              sycl::elem::s9, sycl::elem::sA, sycl::elem::sB, \
-                              sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, \
-                              sycl::elem::sF>();                              \
-  }
-
-#define DO_SWIZZLE_VEC_OP(result, v1, v2, op)                                 \
-  if constexpr (v1.size() == 1) {                                             \
-    result = v1.template swizzle<sycl::elem::s0>() op v2;                     \
-  } else if constexpr (v1.size() == 2) {                                      \
-    result = v1.template swizzle<sycl::elem::s0, sycl::elem::s1>() op v2;     \
-  } else if constexpr (v1.size() == 3) {                                      \
-    result =                                                                  \
-        v1.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2>() \
-            op v2;                                                            \
-  } else if constexpr (v1.size() == 4) {                                      \
-    result = v1.template swizzle<sycl::elem::s0, sycl::elem::s1,              \
-                                 sycl::elem::s2, sycl::elem::s3>() op v2;     \
-  } else if constexpr (v1.size() == 8) {                                      \
-    result =                                                                  \
-        v1.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2,   \
-                            sycl::elem::s3, sycl::elem::s4, sycl::elem::s5,   \
-                            sycl::elem::s6, sycl::elem::s7>() op v2;          \
-  } else if constexpr (v1.size() == 16) {                                     \
-    result = v1.template swizzle<                                             \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,       \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,       \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,       \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>()     \
-                 op v2;                                                       \
-  }
-
-#define DO_SWIZZLE_SCALAR_OP(result, v, s, op)                               \
-  if constexpr (v.size() == 1) {                                             \
-    result = v.template swizzle<sycl::elem::s0>() op s;                      \
-  } else if constexpr (v.size() == 2) {                                      \
-    result = v.template swizzle<sycl::elem::s0, sycl::elem::s1>() op s;      \
-  } else if constexpr (v.size() == 3) {                                      \
-    result =                                                                 \
-        v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2>() \
-            op s;                                                            \
-  } else if constexpr (v.size() == 4) {                                      \
-    result = v.template swizzle<sycl::elem::s0, sycl::elem::s1,              \
-                                sycl::elem::s2, sycl::elem::s3>() op s;      \
-  } else if constexpr (v.size() == 8) {                                      \
-    result =                                                                 \
-        v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2,   \
-                           sycl::elem::s3, sycl::elem::s4, sycl::elem::s5,   \
-                           sycl::elem::s6, sycl::elem::s7>() op s;           \
-  } else if constexpr (v.size() == 16) {                                     \
-    result = v.template swizzle<                                             \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,      \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,      \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,      \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>()    \
-                 op s;                                                       \
-  }
-
-#define DO_SWIZZLE_POST_OP(result, v, op)                                     \
-  if constexpr (v.size() == 1) {                                              \
-    result = v.template swizzle<sycl::elem::s0>() op;                         \
-  } else if constexpr (v.size() == 2) {                                       \
-    result = v.template swizzle<sycl::elem::s0, sycl::elem::s1>() op;         \
-  } else if constexpr (v.size() == 3) {                                       \
-    result =                                                                  \
-        v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2>()  \
-            op;                                                               \
-  } else if constexpr (v.size() == 4) {                                       \
-    result = v.template swizzle<sycl::elem::s0, sycl::elem::s1,               \
-                                sycl::elem::s2, sycl::elem::s3>() op;         \
-  } else if constexpr (v.size() == 8) {                                       \
-    result =                                                                  \
-        v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2,    \
-                           sycl::elem::s3, sycl::elem::s4, sycl::elem::s5,    \
-                           sycl::elem::s6, sycl::elem::s7>() op;              \
-  } else if constexpr (v.size() == 16) {                                      \
-    result = v.template swizzle<                                              \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,       \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,       \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,       \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>() op; \
-  }
-
-#define DO_SWIZZLE_PRE_OP(result, v, op)                                      \
-  if constexpr (v.size() == 1) {                                              \
-    result = op v.template swizzle<sycl::elem::s0>();                         \
-  } else if constexpr (v.size() == 2) {                                       \
-    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1>();         \
-  } else if constexpr (v.size() == 3) {                                       \
-    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1,            \
-                                   sycl::elem::s2>();                         \
-  } else if constexpr (v.size() == 4) {                                       \
-    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1,            \
-                                   sycl::elem::s2, sycl::elem::s3>();         \
-  } else if constexpr (v.size() == 8) {                                       \
-    result =                                                                  \
-        op v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, \
-                              sycl::elem::s3, sycl::elem::s4, sycl::elem::s5, \
-                              sycl::elem::s6, sycl::elem::s7>();              \
-  } else if constexpr (v.size() == 16) {                                      \
-    result = op v.template swizzle<                                           \
-        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,       \
-        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,       \
-        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,       \
-        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>();    \
-  }
-
-template <typename T, int N>
-sycl::buffer<sycl::vec<T, N>, 1> do_addition_test(sycl::queue q, T value_a,
-                                                  T value_b) {
-  sycl::buffer<sycl::vec<T, N>, 1> results(
-      sycl::range{arithmetic_operation_kind::size});
-
-  q.submit([&](sycl::handler& cgh) {
-    sycl::accessor acc(results, cgh, sycl::write_only);
-    cgh.single_task<arithmetic_kernel<arithmetic_operation::addition, T, N>>(
-        [=]() {
-          auto vec1 = sycl::vec<T, N>(value_a);
-          auto vec2 = sycl::vec<T, N>(value_b);
-
-          acc[vec_vec] = vec1 + vec2;
-          DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, +);
-          acc[vec_scalar] = vec1 + value_b;
-          DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, +);
-          DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, +);
-          DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, +);
-          acc[scalar_vec] = value_a + vec2;
-          DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, +);
-        });
-  });
-
-  return results;
 }
 
-template <typename T, int N>
-sycl::buffer<sycl::vec<T, N>, 1> do_substraction_test(sycl::queue q, T value_a,
-                                                      T value_b) {
-  sycl::buffer<sycl::vec<T, N>, 1> results(
-      sycl::range{arithmetic_operation_kind::size});
+template <typename T, typename SizeT, typename OpT,
+          typename Enable = void>
+struct check_arithmetic_binary_operator {
+  void operator()(const std::string&) {}
+};
 
-  q.submit([&](sycl::handler& cgh) {
-    sycl::accessor acc(results, cgh, sycl::write_only);
-    cgh.single_task<
-        arithmetic_kernel<arithmetic_operation::substraction, T, N>>([=]() {
-      auto vec1 = sycl::vec<T, N>(value_a);
-      auto vec2 = sycl::vec<T, N>(value_b);
+template <typename T, typename SizeT, typename OpT>
+struct check_arithmetic_binary_operator<
+    T, SizeT, OpT,
+    std::enable_if_t<OpT::value != arithmetic_binary_operator::reminder ||
+                     (!std::is_floating_point_v<T> &&
+                      !std::is_same_v<T, sycl::half>)>> {
+  static constexpr arithmetic_binary_operator Op = OpT::value;
+  static constexpr int N = SizeT::value;
+  void operator()(const std::string &operator_name) {
+    INFO("Checking binary arithmetic operator " << operator_name);
 
-      acc[vec_vec] = vec1 - vec2;
-      DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, -);
-      acc[vec_scalar] = vec1 - value_b;
-      DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, -);
-      DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, -);
-      DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, -);
-      acc[scalar_vec] = value_a - vec2;
-      DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, -);
-    });
-  });
+    auto q = sycl_cts::util::get_cts_object::queue();
 
-  return results;
-}
+    T value_a = static_cast<T>(42);
+    T value_b = static_cast<T>(2);
 
-template <typename T, int N>
-sycl::buffer<sycl::vec<T, N>, 1> do_division_test(sycl::queue q, T value_a,
-                                                  T value_b) {
-  sycl::buffer<sycl::vec<T, N>, 1> results(
-      sycl::range{arithmetic_operation_kind::size});
-
-  q.submit([&](sycl::handler& cgh) {
-    sycl::accessor acc(results, cgh, sycl::write_only);
-    cgh.single_task<arithmetic_kernel<arithmetic_operation::division, T, N>>(
-        [=]() {
-          auto vec1 = sycl::vec<T, N>(value_a);
-          auto vec2 = sycl::vec<T, N>(value_b);
-
-          acc[vec_vec] = vec1 / vec2;
-          DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, /);
-          acc[vec_scalar] = vec1 / value_b;
-          DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, /);
-          DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, /);
-          DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, /);
-          acc[scalar_vec] = value_a / vec2;
-          DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, /);
-        });
-  });
-
-  return results;
-}
-
-template <typename T, int N>
-sycl::buffer<sycl::vec<T, N>, 1> do_multiplication_test(sycl::queue q,
-                                                        T value_a, T value_b) {
-  sycl::buffer<sycl::vec<T, N>, 1> results(
-      sycl::range{arithmetic_operation_kind::size});
-
-  q.submit([&](sycl::handler& cgh) {
-    sycl::accessor acc(results, cgh, sycl::write_only);
-    cgh.single_task<
-        arithmetic_kernel<arithmetic_operation::multiplication, T, N>>([=]() {
-      auto vec1 = sycl::vec<T, N>(value_a);
-      auto vec2 = sycl::vec<T, N>(value_b);
-
-      acc[vec_vec] = vec1 * vec2;
-      DO_VEC_SWIZZLE_OP(acc[vec_swizzle], vec1, vec2, *);
-      acc[vec_scalar] = vec1 * value_b;
-      DO_SWIZZLE_VEC_OP(acc[swizzle_vec], vec1, vec2, *);
-      DO_SWIZZLE_SWIZZLE_OP(acc[swizzle_swizzle], vec1, vec2, *);
-      DO_SWIZZLE_SCALAR_OP(acc[swizzle_scalar], vec1, value_b, *);
-      acc[scalar_vec] = value_a * vec2;
-      DO_SCALAR_SWIZZLE_OP(acc[scalar_swizzle], value_a, vec2, *);
-    });
-  });
-
-  return results;
-}
+    sycl::buffer<sycl::vec<T, N>, 1> results(
+        sycl::range{arithmetic_operation_kind::size});
+    {
+      INFO("Submitting a kernel");
+      q.submit([&](sycl::handler& cgh) {
+        sycl::accessor acc(results, cgh, sycl::write_only);
+        arithmetic_binary_operator_kernel_functor<Op, T, N> f(acc, value_a, value_b);
+        cgh.single_task(f);
+      });
+    }
+    INFO("Validating results");
+    check_binop_results<Op>(results, reference<Op>(value_a, value_b));
+  }
+};
 
 template <typename T, int N>
 sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
@@ -411,96 +268,23 @@ sycl::buffer<sycl::vec<bool, N>, 1> do_inc_dec_test(sycl::queue q,
 }
 
 template <typename T, int N>
-void check_all_of_vec(sycl::vec<T, N> v, T reference) {
-  for (int i = 0; i < N; ++i) {
-    INFO("Validating results of vector element #" << i);
-    CHECK(v[i] == reference);
-  }
-}
-
-template <typename Buf, typename T>
-void check_results(Buf buf, T reference) {
-  auto acc = buf.get_host_access();
-  for (size_t i = 0; i < acc.size(); ++i) {
-    INFO("Validating results for operation #" << i);
-    check_all_of_vec(acc[i], reference);
-  }
-}
-
-std::string to_string(arithmetic_operation op, arithmetic_operation_kind k) {
-  std::string result;
-  switch (op) {
-    case arithmetic_operation::addition:
-      result = "operator+";
-      break;
-    case arithmetic_operation::substraction:
-      result = "operator-";
-      break;
-    case arithmetic_operation::division:
-      result = "operator/";
-      break;
-    case arithmetic_operation::multiplication:
-      result = "operator*";
-      break;
-    default:
-      result = "unknown operation";
-  }
-
-  switch (k) {
-    case vec_vec:
-      result += "(vec, vec)";
-      break;
-    case vec_swizzle:
-      result += "(vec, swizzle)";
-      break;
-    case vec_scalar:
-      result += "(vec, scalar)";
-      break;
-    case swizzle_vec:
-      result += "(swizzle, vec)";
-      break;
-    case swizzle_swizzle:
-      result += "(swizzle, swizzle)";
-      break;
-    case swizzle_scalar:
-      result += "(swizzle, scalar)";
-      break;
-    case scalar_vec:
-      result += "(scalar, vec)";
-      break;
-    case scalar_swizzle:
-      result += "(scalar, swizzle)";
-      break;
-    default:
-      result += "unknown arguments";
-  }
-
-  return result;
-}
-
-template <arithmetic_operation Op, typename Buf, typename T>
-void check_binop_results(Buf buf, T reference) {
-  auto acc = buf.get_host_access();
-  for (size_t i = 0; i < acc.size(); ++i) {
-    INFO("Validating results of "
-         << type_name_string<typename Buf::value_type>::get(type_name<T>())
-         << "::" << to_string(Op, static_cast<arithmetic_operation_kind>(i)));
-    check_all_of_vec(acc[i], reference);
-  }
-}
-
-template <typename T, int N>
-void do_arithmetic_test() {
+void check_all_operators() {
   auto q = sycl_cts::util::get_cts_object::queue();
+
+  auto arithmetic_binary_ops = value_pack<
+      arithmetic_binary_operator, arithmetic_binary_operator::plus,
+      arithmetic_binary_operator::minus, arithmetic_binary_operator::multiply,
+      arithmetic_binary_operator::divide,
+      arithmetic_binary_operator::reminder>::generate_named("operator+",
+                                                            "operator-",
+                                                            "operator*",
+                                                            "operator/",
+                                                            "operator%");
+  for_all_combinations<check_arithmetic_binary_operator, T, std::integral_constant<int, N>>(arithmetic_binary_ops);
 
   T value_a = static_cast<T>(42);
   T value_b = static_cast<T>(2);
 
-  auto addition_results = do_addition_test<T, N>(q, value_a, value_b);
-  auto substraction_results = do_substraction_test<T, N>(q, value_a, value_b);
-  auto division_results = do_division_test<T, N>(q, value_a, value_b);
-  auto multiplication_results =
-      do_multiplication_test<T, N>(q, value_a, value_b);
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
   // TODO: arithmetic operators: %
   // TODO: assignment operators: +=, -=, *=, /=, %=
@@ -514,14 +298,6 @@ void do_arithmetic_test() {
 
   q.wait();
 
-  check_binop_results<arithmetic_operation::addition>(addition_results,
-                                                      value_a + value_b);
-  check_binop_results<arithmetic_operation::substraction>(substraction_results,
-                                                          value_a - value_b);
-  check_binop_results<arithmetic_operation::division>(division_results,
-                                                      value_a / value_b);
-  check_binop_results<arithmetic_operation::multiplication>(
-      multiplication_results, value_a * value_b);
   if constexpr (!std::is_same_v<T, bool>) {
     auto acc = inc_dec_results.get_host_access();
     check_all_of_vec(acc[post_inc_vec_return], value_a);
