@@ -27,22 +27,23 @@ enum arithmetic_operation_kind : int {
   this->acc[scalar_vec] = this->value_a op vec2;                            \
   DO_SCALAR_SWIZZLE_OP(this->acc[scalar_swizzle], this->value_a, vec2, op);
 
-#define CHECK_BINARY_ASSIGNMENT_OP_KERNEL_BODY(op)                        \
-  auto vec1 = sycl::vec<T, N>(this->value_a);                             \
-  auto vec2 = sycl::vec<T, N>(this->value_b);                             \
-                                                                          \
-  this->acc[vec_vec] = vec1;                                              \
-  this->acc[vec_vec] op vec2;                                             \
-  this->acc[vec_swizzle] = vec1;                                          \
-  DO_VEC_SWIZZLE_ASSIGNMENT_OP(this->acc[vec_swizzle], vec2, op);         \
-  this->acc[vec_scalar] = vec1;                                           \
-  this->acc[vec_scalar] op this->value_b;                                 \
-  this->acc[swizzle_vec] = vec1;                                          \
-  DO_SWIZZLE_VEC_ASSIGNMENT_OP(this->acc[swizzle_vec], vec2, op);         \
-  this->acc[swizzle_swizzle] = vec1;                                      \
-  DO_SWIZZLE_SWIZZLE_ASSIGNMENT_OP(this->acc[swizzle_swizzle], vec2, op); \
-  this->acc[swizzle_scalar] = vec1;                                       \
-  DO_SWIZZLE_SCALAR_ASSIGNMENT_OP(this->acc[swizzle_scalar], N, this->value_b, op);
+#define CHECK_BINARY_ASSIGNMENT_OP_KERNEL_BODY(op)                             \
+  auto vec1 = sycl::vec<T, N>(this->value_a);                                  \
+  auto vec2 = sycl::vec<T, N>(this->value_b);                                  \
+                                                                               \
+  this->acc[vec_vec] = vec1;                                                   \
+  this->acc[vec_vec] op vec2;                                                  \
+  this->acc[vec_swizzle] = vec1;                                               \
+  DO_VEC_SWIZZLE_ASSIGNMENT_OP(this->acc[vec_swizzle], vec2, op);              \
+  this->acc[vec_scalar] = vec1;                                                \
+  this->acc[vec_scalar] op this->value_b;                                      \
+  this->acc[swizzle_vec] = vec1;                                               \
+  DO_SWIZZLE_VEC_ASSIGNMENT_OP(this->acc[swizzle_vec], vec2, op);              \
+  this->acc[swizzle_swizzle] = vec1;                                           \
+  DO_SWIZZLE_SWIZZLE_ASSIGNMENT_OP(this->acc[swizzle_swizzle], vec2, op);      \
+  this->acc[swizzle_scalar] = vec1;                                            \
+  DO_SWIZZLE_SCALAR_ASSIGNMENT_OP(this->acc[swizzle_scalar], N, this->value_b, \
+                                  op);
 
 enum class arithmetic_binary_operator {
   plus,
@@ -52,12 +53,11 @@ enum class arithmetic_binary_operator {
   reminder
 };
 
-template<typename T, int N>
+template <typename T, int N>
 class arithmetic_binary_operator_kernel_functor_base {
  public:
   arithmetic_binary_operator_kernel_functor_base(
-      sycl::accessor<sycl::vec<T, N>> acc,
-      T value_a, T value_b)
+      sycl::accessor<sycl::vec<T, N>> acc, T value_a, T value_b)
       : acc(acc), value_a(value_a), value_b(value_b) {}
 
  protected:

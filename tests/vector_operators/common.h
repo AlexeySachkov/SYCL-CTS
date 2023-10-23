@@ -98,7 +98,7 @@ std::string to_string(arithmetic_operation op,
   return result;
 }
 
-std::string to_string( arithmetic_operation_kind k) {
+std::string to_string(arithmetic_operation_kind k) {
   switch (k) {
     case vec_vec:
       return "vec op vec";
@@ -167,8 +167,7 @@ T reference(T a, T b) {
   }
 }
 
-template <typename T, typename SizeT, typename OpT,
-          typename Enable = void>
+template <typename T, typename SizeT, typename OpT, typename Enable = void>
 struct check_arithmetic_binary_operator {
   void operator()(const std::string&) {}
 };
@@ -181,7 +180,7 @@ struct check_arithmetic_binary_operator<
                       !std::is_same_v<T, sycl::half>)>> {
   static constexpr arithmetic_binary_operator Op = OpT::value;
   static constexpr int N = SizeT::value;
-  void operator()(const std::string &operator_name) {
+  void operator()(const std::string& operator_name) {
     INFO("Checking binary arithmetic operator " << operator_name);
 
     auto q = sycl_cts::util::get_cts_object::queue();
@@ -195,7 +194,8 @@ struct check_arithmetic_binary_operator<
       INFO("Submitting a kernel");
       q.submit([&](sycl::handler& cgh) {
         sycl::accessor acc(results, cgh);
-        arithmetic_binary_operator_kernel_functor<Op, T, N> f(acc, value_a, value_b);
+        arithmetic_binary_operator_kernel_functor<Op, T, N> f(acc, value_a,
+                                                              value_b);
         cgh.single_task(f);
       });
     }
@@ -204,8 +204,7 @@ struct check_arithmetic_binary_operator<
   }
 };
 
-template <typename T, typename SizeT, typename OpT,
-          typename Enable = void>
+template <typename T, typename SizeT, typename OpT, typename Enable = void>
 struct check_arithmetic_binary_assignment_operator {
   void operator()(const std::string&) {}
 };
@@ -218,7 +217,7 @@ struct check_arithmetic_binary_assignment_operator<
                       !std::is_same_v<T, sycl::half>)>> {
   static constexpr arithmetic_binary_operator Op = OpT::value;
   static constexpr int N = SizeT::value;
-  void operator()(const std::string &operator_name) {
+  void operator()(const std::string& operator_name) {
     INFO("Checking binary arithmetic asignment operator: " << operator_name);
 
     auto q = sycl_cts::util::get_cts_object::queue();
@@ -231,10 +230,11 @@ struct check_arithmetic_binary_assignment_operator<
     {
       INFO("Submitting a kernel");
       q.submit([&](sycl::handler& cgh) {
-        sycl::accessor acc(results, cgh);
-        arithmetic_binary_assignment_operator_kernel_functor<Op, T, N> f(acc, value_a, value_b);
-        cgh.single_task(f);
-      }).wait();
+         sycl::accessor acc(results, cgh);
+         arithmetic_binary_assignment_operator_kernel_functor<Op, T, N> f(
+             acc, value_a, value_b);
+         cgh.single_task(f);
+       }).wait();
     }
 
     INFO("Validating results");
@@ -316,7 +316,8 @@ void check_all_operators() {
                                                             "operator*",
                                                             "operator/",
                                                             "operator%");
-  for_all_combinations<check_arithmetic_binary_operator, T, std::integral_constant<int, N>>(arithmetic_binary_ops);
+  for_all_combinations<check_arithmetic_binary_operator, T,
+                       std::integral_constant<int, N>>(arithmetic_binary_ops);
 
   auto arithmetic_binary_assignment_ops = value_pack<
       arithmetic_binary_operator, arithmetic_binary_operator::plus,
@@ -327,7 +328,9 @@ void check_all_operators() {
                                                             "operator*=",
                                                             "operator/=",
                                                             "operator%=");
-  for_all_combinations<check_arithmetic_binary_assignment_operator, T, std::integral_constant<int, N>>(arithmetic_binary_assignment_ops);
+  for_all_combinations<check_arithmetic_binary_assignment_operator, T,
+                       std::integral_constant<int, N>>(
+      arithmetic_binary_assignment_ops);
 
   T value_a = static_cast<T>(42);
   T value_b = static_cast<T>(2);
