@@ -248,8 +248,6 @@ sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
   sycl::buffer<sycl::vec<T, N>, 1> results(
       sycl::range{increment_decrement_check_index::total_inc_dec});
 
-  throw new std::exception();
-
   q.submit([&](sycl::handler& cgh) {
     sycl::accessor acc(results, cgh, sycl::write_only);
     cgh.single_task<
