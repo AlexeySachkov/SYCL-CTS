@@ -50,7 +50,10 @@ enum class arithmetic_binary_operator {
   minus,
   multiply,
   divide,
-  reminder
+  reminder,
+  bitwise_and,
+  bitwise_or,
+  bitwise_xor
 };
 
 template <typename T, int N>
@@ -65,6 +68,8 @@ class arithmetic_binary_operator_kernel_functor_base {
   T value_a;
   T value_b;
 };
+
+// binary arithmetic: +, -, *, /, %
 
 template <arithmetic_binary_operator Op, typename T, int N>
 class arithmetic_binary_operator_kernel_functor
@@ -122,6 +127,8 @@ class arithmetic_binary_operator_kernel_functor<
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(%) }
 };
 
+// binary assignment arithmetic: +=, -=, *=, /=, %=
+
 template <arithmetic_binary_operator Op, typename T, int N>
 class arithmetic_binary_assignment_operator_kernel_functor
     : public arithmetic_binary_operator_kernel_functor_base<T, N> {};
@@ -176,4 +183,40 @@ class arithmetic_binary_assignment_operator_kernel_functor<
   using arithmetic_binary_operator_kernel_functor_base<
       T, N>::arithmetic_binary_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_ASSIGNMENT_OP_KERNEL_BODY(%=) }
+};
+
+// bitwise binary: &, |, ^
+
+template <arithmetic_binary_operator Op, typename T, int N>
+class bitwise_binary_operator_kernel_functor
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {};
+
+template <typename T, int N>
+class bitwise_binary_operator_kernel_functor<
+    arithmetic_binary_operator::bitwise_and, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(&) }
+};
+
+template <typename T, int N>
+class bitwise_binary_operator_kernel_functor<
+    arithmetic_binary_operator::bitwise_or, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(|) }
+};
+
+template <typename T, int N>
+class bitwise_binary_operator_kernel_functor<
+    arithmetic_binary_operator::bitwise_xor, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(^) }
 };
