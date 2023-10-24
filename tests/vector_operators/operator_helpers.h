@@ -299,3 +299,27 @@
         sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>()     \
         op s;                                                                 \
   }
+
+#define DO_SWIZZLE_UNARY_OP(result, v, op)                                    \
+  if constexpr (v.size() == 1) {                                              \
+    result = op v.template swizzle<sycl::elem::s0>();                         \
+  } else if constexpr (v.size() == 2) {                                       \
+    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1>();         \
+  } else if constexpr (v.size() == 3) {                                       \
+    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1,            \
+                                   sycl::elem::s2>();                         \
+  } else if constexpr (v.size() == 4) {                                       \
+    result = op v.template swizzle<sycl::elem::s0, sycl::elem::s1,            \
+                                   sycl::elem::s2, sycl::elem::s3>();         \
+  } else if constexpr (v.size() == 8) {                                       \
+    result =                                                                  \
+        op v.template swizzle<sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, \
+                              sycl::elem::s3, sycl::elem::s4, sycl::elem::s5, \
+                              sycl::elem::s6, sycl::elem::s7>();              \
+  } else if constexpr (v.size() == 16) {                                      \
+    result = op v.template swizzle<                                           \
+        sycl::elem::s0, sycl::elem::s1, sycl::elem::s2, sycl::elem::s3,       \
+        sycl::elem::s4, sycl::elem::s5, sycl::elem::s6, sycl::elem::s7,       \
+        sycl::elem::s8, sycl::elem::s9, sycl::elem::sA, sycl::elem::sB,       \
+        sycl::elem::sC, sycl::elem::sD, sycl::elem::sE, sycl::elem::sF>();    \
+  }
