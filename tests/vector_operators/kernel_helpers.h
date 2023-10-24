@@ -64,7 +64,13 @@ enum class arithmetic_binary_operator {
   bitwise_xor,
   logical_and,
   logical_or,
-  logical_not
+  logical_not,
+  equal,
+  not_equal,
+  less_or_equal,
+  greater_or_equal,
+  less,
+  greater
 };
 
 template <typename T, int N>
@@ -301,4 +307,89 @@ class logical_operator_kernel_functor<arithmetic_binary_operator::logical_not,
       typename result_type<T, arithmetic_binary_operator::logical_not>::type,
       N>::arithmetic_binary_operator_kernel_functor_base;
   void operator()() const { CHECK_UNARY_OP_KERNEL_BODY(!) }
+};
+
+// relational: ==, !=, <=, >=, <, >
+
+template <arithmetic_binary_operator Op, typename T, int N>
+class relational_operator_kernel_functor
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T, Op>::type, N> {};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<arithmetic_binary_operator::equal, T,
+                                         N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T, arithmetic_binary_operator::equal>::type, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T, arithmetic_binary_operator::equal>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(==) }
+};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<arithmetic_binary_operator::not_equal,
+                                         T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T, arithmetic_binary_operator::not_equal>::type,
+          N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T, arithmetic_binary_operator::not_equal>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(!=) }
+};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<
+    arithmetic_binary_operator::less_or_equal, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T,
+                               arithmetic_binary_operator::less_or_equal>::type,
+          N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T, arithmetic_binary_operator::less_or_equal>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(<=) }
+};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<
+    arithmetic_binary_operator::greater_or_equal, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<
+              T, arithmetic_binary_operator::greater_or_equal>::type,
+          N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T,
+                           arithmetic_binary_operator::greater_or_equal>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>=) }
+};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<arithmetic_binary_operator::less, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T, arithmetic_binary_operator::less>::type, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T, arithmetic_binary_operator::less>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(<) }
+};
+
+template <typename T, int N>
+class relational_operator_kernel_functor<arithmetic_binary_operator::greater, T,
+                                         N>
+    : public arithmetic_binary_operator_kernel_functor_base<
+          typename result_type<T, arithmetic_binary_operator::greater>::type,
+          N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      typename result_type<T, arithmetic_binary_operator::greater>::type,
+      N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>) }
 };
