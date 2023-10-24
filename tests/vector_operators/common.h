@@ -518,12 +518,12 @@ void check_all_operators() {
   T value_b = static_cast<T>(2);
 
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
-  // TODO: unary operators: +, -
   // TODO: bitwise operators: >>, <<
   // TODO: bitwise assignment operators: |=, ^=, &=, >>=, <<=
   // TODO: subscript operator: []
   // TODO: conversion operators: vector_t(), DataT()
   // TODO: assignment operators: =
+  // TODO: bitwise unary: ~
 
   q.wait();
 
