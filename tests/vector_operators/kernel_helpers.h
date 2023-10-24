@@ -77,6 +77,35 @@ enum class arithmetic_binary_operator {
   bitwise_shift_right
 };
 
+template <typename T, arithmetic_binary_operator Op, typename Enable = void>
+struct result_type {
+  using type = T;
+};
+
+template <typename T, typename T8 = std::int8_t, typename T16 = std::int16_t,
+          typename T32 = std::int32_t, typename T64 = std::int64_t>
+struct select_fixed_size_type {
+  using type = std::conditional_t<
+      sizeof(T) == 1, T8,
+      std::conditional_t<sizeof(T) == 2, T16,
+                         std::conditional_t<sizeof(T) == 4, T32, T64>>>;
+};
+
+template <typename T, arithmetic_binary_operator Op>
+struct result_type<T, Op,
+                   typename std::enable_if_t<(
+                       Op == arithmetic_binary_operator::logical_or ||
+                       Op == arithmetic_binary_operator::logical_and ||
+                       Op == arithmetic_binary_operator::logical_not ||
+                       Op == arithmetic_binary_operator::equal ||
+                       Op == arithmetic_binary_operator::not_equal ||
+                       Op == arithmetic_binary_operator::less ||
+                       Op == arithmetic_binary_operator::less_or_equal ||
+                       Op == arithmetic_binary_operator::greater ||
+                       Op == arithmetic_binary_operator::greater_or_equal)>> {
+  using type = typename select_fixed_size_type<T>::type;
+};
+
 template <typename T, int N>
 class arithmetic_binary_operator_kernel_functor_base {
  public:
@@ -86,6 +115,21 @@ class arithmetic_binary_operator_kernel_functor_base {
 
  protected:
   sycl::accessor<sycl::vec<T, N>> acc;
+  T value_a;
+  T value_b;
+};
+
+template <typename T, int N>
+class arithmetic_binary_special_operator_kernel_functor_base {
+  using RetT = typename select_fixed_size_type<T>::type;
+
+ public:
+  arithmetic_binary_special_operator_kernel_functor_base(
+      sycl::accessor<sycl::vec<RetT, N>> acc, T value_a, T value_b)
+      : acc(acc), value_a(value_a), value_b(value_b) {}
+
+ protected:
+  sycl::accessor<sycl::vec<RetT, N>> acc;
   T value_a;
   T value_b;
 };
@@ -264,29 +308,6 @@ class bitwise_binary_operator_kernel_functor<
 
 // logical: &&, ||, !
 
-template <typename T, arithmetic_binary_operator Op, typename Enable = void>
-struct result_type {
-  using type = T;
-};
-
-template <typename T, typename T8 = std::int8_t, typename T16 = std::int16_t,
-          typename T32 = std::int32_t, typename T64 = std::int64_t>
-struct select_fixed_size_type {
-  using type = std::conditional_t<
-      sizeof(T) == 1, T8,
-      std::conditional_t<sizeof(T) == 2, T16,
-                         std::conditional_t<sizeof(T) == 4, T32, T64>>>;
-};
-
-template <typename T, arithmetic_binary_operator Op>
-struct result_type<T, Op,
-                   typename std::enable_if_t<(
-                       Op == arithmetic_binary_operator::logical_or ||
-                       Op == arithmetic_binary_operator::logical_and ||
-                       Op == arithmetic_binary_operator::logical_not)>> {
-  using type = typename select_fixed_size_type<T>::type;
-};
-
 template <arithmetic_binary_operator Op, typename T, int N>
 class logical_operator_kernel_functor
     : public arithmetic_binary_operator_kernel_functor_base<
@@ -337,84 +358,64 @@ class logical_operator_kernel_functor<arithmetic_binary_operator::logical_not,
 
 template <arithmetic_binary_operator Op, typename T, int N>
 class relational_operator_kernel_functor
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, Op>::type, N> {};
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {};
 
 template <typename T, int N>
 class relational_operator_kernel_functor<arithmetic_binary_operator::equal, T,
                                          N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, arithmetic_binary_operator::equal>::type, N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::equal>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(==) }
 };
 
 template <typename T, int N>
 class relational_operator_kernel_functor<arithmetic_binary_operator::not_equal,
                                          T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, arithmetic_binary_operator::not_equal>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::not_equal>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(!=) }
 };
 
 template <typename T, int N>
 class relational_operator_kernel_functor<
     arithmetic_binary_operator::less_or_equal, T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T,
-                               arithmetic_binary_operator::less_or_equal>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::less_or_equal>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(<=) }
 };
 
 template <typename T, int N>
 class relational_operator_kernel_functor<
     arithmetic_binary_operator::greater_or_equal, T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<
-              T, arithmetic_binary_operator::greater_or_equal>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T,
-                           arithmetic_binary_operator::greater_or_equal>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>=) }
 };
 
 template <typename T, int N>
 class relational_operator_kernel_functor<arithmetic_binary_operator::less, T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, arithmetic_binary_operator::less>::type, N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::less>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(<) }
 };
 
 template <typename T, int N>
 class relational_operator_kernel_functor<arithmetic_binary_operator::greater, T,
                                          N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, arithmetic_binary_operator::greater>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::greater>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>) }
 };
 
