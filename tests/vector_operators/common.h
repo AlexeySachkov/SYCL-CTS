@@ -40,65 +40,7 @@ enum class arithmetic_operation {
   increment_decrement
 };
 
-std::string to_string(arithmetic_operation op,
-                      arithmetic_operation_kind k = size) {
-  std::string result;
-  switch (op) {
-    case arithmetic_operation::addition:
-      result = "operator+";
-      break;
-    case arithmetic_operation::substraction:
-      result = "operator-";
-      break;
-    case arithmetic_operation::division:
-      result = "operator/";
-      break;
-    case arithmetic_operation::multiplication:
-      result = "operator*";
-      break;
-    case arithmetic_operation::reminder:
-      result = "operator%";
-      break;
-    default:
-      result = "unknown operation";
-  }
-
-  switch (k) {
-    case vec_vec:
-      result += "(vec, vec)";
-      break;
-    case vec_swizzle:
-      result += "(vec, swizzle)";
-      break;
-    case vec_scalar:
-      result += "(vec, scalar)";
-      break;
-    case swizzle_vec:
-      result += "(swizzle, vec)";
-      break;
-    case swizzle_swizzle:
-      result += "(swizzle, swizzle)";
-      break;
-    case swizzle_scalar:
-      result += "(swizzle, scalar)";
-      break;
-    case scalar_vec:
-      result += "(scalar, vec)";
-      break;
-    case scalar_swizzle:
-      result += "(scalar, swizzle)";
-      break;
-    case size:
-      // do nothing
-      break;
-    default:
-      result += "unknown arguments";
-  }
-
-  return result;
-}
-
-std::string to_string(arithmetic_operation_kind k) {
+inline std::string to_string(arithmetic_operation_kind k) {
   switch (k) {
     case vec_vec:
       return "vec op vec";
@@ -183,17 +125,17 @@ typename result_type<T, Op>::type reference(T a, T b) {
     // FIXME: why - is required? KhronosGroup/SYCL-Docs#302
     return -!a;
   } else if constexpr (arithmetic_binary_operator::equal == Op) {
-    return -(a == b);
+    return -static_cast<T>(a == b);
   } else if constexpr (arithmetic_binary_operator::not_equal == Op) {
-    return -(a != b);
+    return -static_cast<T>(a != b);
   } else if constexpr (arithmetic_binary_operator::less_or_equal == Op) {
-    return -(a <= b);
+    return -static_cast<T>(a <= b);
   } else if constexpr (arithmetic_binary_operator::greater_or_equal == Op) {
-    return -(a >= b);
+    return -static_cast<T>(a >= b);
   } else if constexpr (arithmetic_binary_operator::less == Op) {
-    return -(a < b);
+    return -static_cast<T>(a < b);
   } else if constexpr (arithmetic_binary_operator::greater == Op) {
-    return -(a > b);
+    return -static_cast<T>(a > b);
   } else if constexpr (arithmetic_binary_operator::unary_plus == Op) {
     return +a;
   } else if constexpr (arithmetic_binary_operator::unary_minus == Op) {
@@ -482,6 +424,8 @@ sycl::buffer<sycl::vec<bool, N>, 1> do_inc_dec_test(sycl::queue q,
 
 template <typename T, int N>
 void check_all_operators() {
+  auto name = type_name_string<sycl::vec<T, N>>::get(type_name<T>());
+  INFO("Checking operators of " << name);
   auto q = sycl_cts::util::get_cts_object::queue();
 
   auto arithmetic_binary_ops = value_pack<
@@ -509,39 +453,47 @@ void check_all_operators() {
                        std::integral_constant<int, N>>(
       arithmetic_binary_assignment_ops);
 
-  auto bitwise_binary_ops =
-      value_pack<arithmetic_binary_operator,
-                 arithmetic_binary_operator::bitwise_and,
-                 arithmetic_binary_operator::bitwise_or,
-                 arithmetic_binary_operator::bitwise_xor,
-                 arithmetic_binary_operator::bitwise_shift_left,
-                 arithmetic_binary_operator::bitwise_shift_right>::
-          generate_named("operator&", "operator|", "operator^", "operator<<",
-                         "operator>>");
-  for_all_combinations<check_bitwise_binary_operator, T,
-                       std::integral_constant<int, N>>(bitwise_binary_ops);
+  if constexpr (!std::is_floating_point_v<T> &&
+                !std::is_same_v<T, sycl::half>) {
+    auto bitwise_binary_ops =
+        value_pack<arithmetic_binary_operator,
+                   arithmetic_binary_operator::bitwise_and,
+                   arithmetic_binary_operator::bitwise_or,
+                   arithmetic_binary_operator::bitwise_xor,
+                   arithmetic_binary_operator::bitwise_shift_left,
+                   arithmetic_binary_operator::bitwise_shift_right>::
+            generate_named("operator&", "operator|", "operator^", "operator<<",
+                           "operator>>");
+    for_all_combinations<check_bitwise_binary_operator, T,
+                         std::integral_constant<int, N>>(bitwise_binary_ops);
 
-  auto bitwise_assignment_binary_ops =
-      value_pack<arithmetic_binary_operator,
-                 arithmetic_binary_operator::bitwise_and,
-                 arithmetic_binary_operator::bitwise_or,
-                 arithmetic_binary_operator::bitwise_xor,
-                 arithmetic_binary_operator::bitwise_shift_left,
-                 arithmetic_binary_operator::bitwise_shift_right>::
-          generate_named("operator&=", "operator|=", "operator^=",
-                         "operator<<=", "operator>>=");
-  for_all_combinations<check_bitwise_binary_assignment_operator, T,
-                       std::integral_constant<int, N>>(
-      bitwise_assignment_binary_ops);
+    auto bitwise_assignment_binary_ops =
+        value_pack<arithmetic_binary_operator,
+                   arithmetic_binary_operator::bitwise_and,
+                   arithmetic_binary_operator::bitwise_or,
+                   arithmetic_binary_operator::bitwise_xor,
+                   arithmetic_binary_operator::bitwise_shift_left,
+                   arithmetic_binary_operator::bitwise_shift_right>::
+            generate_named("operator&=", "operator|=", "operator^=",
+                           "operator<<=", "operator>>=");
+    for_all_combinations<check_bitwise_binary_assignment_operator, T,
+                         std::integral_constant<int, N>>(
+        bitwise_assignment_binary_ops);
+  }
 
-  auto logical_ops = value_pack<
-      arithmetic_binary_operator, arithmetic_binary_operator::logical_and,
-      arithmetic_binary_operator::logical_or,
-      arithmetic_binary_operator::logical_not>::generate_named("operator&&",
-                                                               "operator||",
-                                                               "operator!");
-  for_all_combinations<check_logical_operator, T,
-                       std::integral_constant<int, N>>(logical_ops);
+  // FIXME: those should be supported for floating-point, but we don't support
+  // them yet at intel/llvm.
+  if constexpr (!std::is_floating_point_v<T> &&
+                !std::is_same_v<T, sycl::half>) {
+    auto logical_ops = value_pack<
+        arithmetic_binary_operator, arithmetic_binary_operator::logical_and,
+        arithmetic_binary_operator::logical_or,
+        arithmetic_binary_operator::logical_not>::generate_named("operator&&",
+                                                                 "operator||",
+                                                                 "operator!");
+    for_all_combinations<check_logical_operator, T,
+                         std::integral_constant<int, N>>(logical_ops);
+  }
 
   auto relational_ops =
       value_pack<arithmetic_binary_operator, arithmetic_binary_operator::equal,

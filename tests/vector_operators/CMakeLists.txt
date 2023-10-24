@@ -1,5 +1,6 @@
 set(TEST_CASES_LIST
-  int.cpp)
+  int.cpp
+  float.cpp)
 
 # set(TYPE_LIST "")
 # get_std_type(TYPE_LIST)
