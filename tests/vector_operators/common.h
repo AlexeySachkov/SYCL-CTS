@@ -307,6 +307,34 @@ struct check_bitwise_binary_operator {
 };
 
 template <typename T, typename SizeT, typename OpT>
+struct check_bitwise_binary_assignment_operator {
+  static constexpr arithmetic_binary_operator Op = OpT::value;
+  static constexpr int N = SizeT::value;
+  void operator()(const std::string& operator_name) {
+    INFO("Checking bitwise assignment operator: " << operator_name);
+
+    auto q = sycl_cts::util::get_cts_object::queue();
+
+    T value_a = static_cast<T>(42);
+    T value_b = static_cast<T>(2);
+
+    sycl::buffer<sycl::vec<T, N>, 1> results(
+        sycl::range{arithmetic_operation_kind::assignment_size});
+    {
+      INFO("Submitting a kernel");
+      q.submit([&](sycl::handler& cgh) {
+        sycl::accessor acc(results, cgh);
+        bitwise_binary_assignment_operator_kernel_functor<Op, T, N> f(
+            acc, value_a, value_b);
+        cgh.single_task(f);
+      });
+    }
+    INFO("Validating results");
+    check_binop_results<Op>(results, reference<Op>(value_a, value_b));
+  }
+};
+
+template <typename T, typename SizeT, typename OpT>
 struct check_logical_operator {
   static constexpr arithmetic_binary_operator Op = OpT::value;
   static constexpr int N = SizeT::value;
@@ -493,6 +521,19 @@ void check_all_operators() {
   for_all_combinations<check_bitwise_binary_operator, T,
                        std::integral_constant<int, N>>(bitwise_binary_ops);
 
+  auto bitwise_assignment_binary_ops =
+      value_pack<arithmetic_binary_operator,
+                 arithmetic_binary_operator::bitwise_and,
+                 arithmetic_binary_operator::bitwise_or,
+                 arithmetic_binary_operator::bitwise_xor,
+                 arithmetic_binary_operator::bitwise_shift_left,
+                 arithmetic_binary_operator::bitwise_shift_right>::
+          generate_named("operator&=", "operator|=", "operator^=",
+                         "operator<<=", "operator>>=");
+  for_all_combinations<check_bitwise_binary_assignment_operator, T,
+                       std::integral_constant<int, N>>(
+      bitwise_assignment_binary_ops);
+
   auto logical_ops = value_pack<
       arithmetic_binary_operator, arithmetic_binary_operator::logical_and,
       arithmetic_binary_operator::logical_or,
@@ -525,7 +566,6 @@ void check_all_operators() {
   T value_b = static_cast<T>(2);
 
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
-  // TODO: bitwise assignment operators: |=, ^=, &=, >>=, <<=
   // TODO: subscript operator: []
   // TODO: conversion operators: vector_t(), DataT()
   // TODO: assignment operators: =
