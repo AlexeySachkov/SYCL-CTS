@@ -70,7 +70,9 @@ enum class arithmetic_binary_operator {
   less_or_equal,
   greater_or_equal,
   less,
-  greater
+  greater,
+  unary_plus,
+  unary_minus
 };
 
 template <typename T, int N>
@@ -392,4 +394,30 @@ class relational_operator_kernel_functor<arithmetic_binary_operator::greater, T,
       typename result_type<T, arithmetic_binary_operator::greater>::type,
       N>::arithmetic_binary_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>) }
+};
+
+// unary arithmetic: +, -
+
+template <arithmetic_binary_operator Op, typename T, int N>
+class unary_arithmetic_operator_kernel_functor
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {};
+
+template <typename T, int N>
+class unary_arithmetic_operator_kernel_functor<
+    arithmetic_binary_operator::unary_plus, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_UNARY_OP_KERNEL_BODY(+) }
+};
+
+template <typename T, int N>
+class unary_arithmetic_operator_kernel_functor<
+    arithmetic_binary_operator::unary_minus, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_UNARY_OP_KERNEL_BODY(-) }
 };

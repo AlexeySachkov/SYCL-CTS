@@ -190,6 +190,10 @@ typename result_type<T, Op>::type reference(T a, T b) {
     return -(a < b);
   } else if constexpr (arithmetic_binary_operator::greater == Op) {
     return -(a > b);
+  } else if constexpr (arithmetic_binary_operator::unary_plus == Op) {
+    return +a;
+  } else if constexpr (arithmetic_binary_operator::unary_minus == Op) {
+    return -a;
   } else {
     assert(false && "unsupported operator");
   }
@@ -355,6 +359,34 @@ struct check_relational_operator {
   }
 };
 
+template <typename T, typename SizeT, typename OpT>
+struct check_unary_arithmetic_operator {
+  static constexpr arithmetic_binary_operator Op = OpT::value;
+  static constexpr int N = SizeT::value;
+  void operator()(const std::string& operator_name) {
+    INFO("Checking unary operator: " << operator_name);
+
+    auto q = sycl_cts::util::get_cts_object::queue();
+
+    T value_a = static_cast<T>(42);
+    T value_b = static_cast<T>(2);
+
+    constexpr int size = unary_op_kind::total;
+    sycl::buffer<sycl::vec<T, N>, 1> results(sycl::range{size});
+    {
+      INFO("Submitting a kernel");
+      q.submit([&](sycl::handler& cgh) {
+        sycl::accessor acc(results, cgh);
+        unary_arithmetic_operator_kernel_functor<Op, T, N> f(acc, value_a,
+                                                             value_b);
+        cgh.single_task(f);
+      });
+    }
+    INFO("Validating results");
+    check_binop_results<Op>(results, reference<Op>(value_a, value_b));
+  }
+};
+
 template <typename T, int N>
 sycl::buffer<sycl::vec<T, N>, 1> do_inc_dec_test(sycl::queue q, T value_a) {
   INFO("Submitting kernel for testing increment/decrement operations");
@@ -474,6 +506,13 @@ void check_all_operators() {
                          "operator<", "operator>");
   for_all_combinations<check_relational_operator, T,
                        std::integral_constant<int, N>>(relational_ops);
+
+  auto unary_ops = value_pack<
+      arithmetic_binary_operator, arithmetic_binary_operator::unary_plus,
+      arithmetic_binary_operator::unary_minus>::generate_named("operator+",
+                                                               "operator-");
+  for_all_combinations<check_unary_arithmetic_operator, T,
+                       std::integral_constant<int, N>>(unary_ops);
 
   T value_a = static_cast<T>(42);
   T value_b = static_cast<T>(2);
