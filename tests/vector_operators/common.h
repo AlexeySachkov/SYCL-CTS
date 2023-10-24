@@ -169,14 +169,18 @@ typename result_type<T, Op>::type reference(T a, T b) {
     return a | b;
   } else if constexpr (arithmetic_binary_operator::bitwise_xor == Op) {
     return a ^ b;
+  } else if constexpr (arithmetic_binary_operator::bitwise_shift_left == Op) {
+    return a << b;
+  } else if constexpr (arithmetic_binary_operator::bitwise_shift_right == Op) {
+    return a >> b;
   } else if constexpr (arithmetic_binary_operator::logical_and == Op) {
-    // FIXME: why - is required?
+    // FIXME: why - is required? KhronosGroup/SYCL-Docs#302
     return -(a && b);
   } else if constexpr (arithmetic_binary_operator::logical_or == Op) {
-    // FIXME: why - is required?
+    // FIXME: why - is required? KhronosGroup/SYCL-Docs#302
     return -(a || b);
   } else if constexpr (arithmetic_binary_operator::logical_not == Op) {
-    // FIXME: why - is required?
+    // FIXME: why - is required? KhronosGroup/SYCL-Docs#302
     return -!a;
   } else if constexpr (arithmetic_binary_operator::equal == Op) {
     return -(a == b);
@@ -477,12 +481,15 @@ void check_all_operators() {
                        std::integral_constant<int, N>>(
       arithmetic_binary_assignment_ops);
 
-  auto bitwise_binary_ops = value_pack<
-      arithmetic_binary_operator, arithmetic_binary_operator::bitwise_and,
-      arithmetic_binary_operator::bitwise_or,
-      arithmetic_binary_operator::bitwise_xor>::generate_named("operator&",
-                                                               "operator|",
-                                                               "operator^");
+  auto bitwise_binary_ops =
+      value_pack<arithmetic_binary_operator,
+                 arithmetic_binary_operator::bitwise_and,
+                 arithmetic_binary_operator::bitwise_or,
+                 arithmetic_binary_operator::bitwise_xor,
+                 arithmetic_binary_operator::bitwise_shift_left,
+                 arithmetic_binary_operator::bitwise_shift_right>::
+          generate_named("operator&", "operator|", "operator^", "operator<<",
+                         "operator>>");
   for_all_combinations<check_bitwise_binary_operator, T,
                        std::integral_constant<int, N>>(bitwise_binary_ops);
 
@@ -518,7 +525,6 @@ void check_all_operators() {
   T value_b = static_cast<T>(2);
 
   auto inc_dec_results = do_inc_dec_test<T, N>(q, value_a);
-  // TODO: bitwise operators: >>, <<
   // TODO: bitwise assignment operators: |=, ^=, &=, >>=, <<=
   // TODO: subscript operator: []
   // TODO: conversion operators: vector_t(), DataT()

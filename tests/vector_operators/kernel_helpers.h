@@ -72,7 +72,9 @@ enum class arithmetic_binary_operator {
   less,
   greater,
   unary_plus,
-  unary_minus
+  unary_minus,
+  bitwise_shift_left,
+  bitwise_shift_right
 };
 
 template <typename T, int N>
@@ -204,7 +206,7 @@ class arithmetic_binary_assignment_operator_kernel_functor<
   void operator()() const { CHECK_BINARY_ASSIGNMENT_OP_KERNEL_BODY(%=) }
 };
 
-// bitwise binary: &, |, ^
+// bitwise binary: &, |, ^, <<, >>
 
 template <arithmetic_binary_operator Op, typename T, int N>
 class bitwise_binary_operator_kernel_functor
@@ -238,6 +240,26 @@ class bitwise_binary_operator_kernel_functor<
   using arithmetic_binary_operator_kernel_functor_base<
       T, N>::arithmetic_binary_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(^) }
+};
+
+template <typename T, int N>
+class bitwise_binary_operator_kernel_functor<
+    arithmetic_binary_operator::bitwise_shift_left, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(<<) }
+};
+
+template <typename T, int N>
+class bitwise_binary_operator_kernel_functor<
+    arithmetic_binary_operator::bitwise_shift_right, T, N>
+    : public arithmetic_binary_operator_kernel_functor_base<T, N> {
+ public:
+  using arithmetic_binary_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_operator_kernel_functor_base;
+  void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(>>) }
 };
 
 // logical: &&, ||, !
