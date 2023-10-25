@@ -310,47 +310,35 @@ class bitwise_binary_operator_kernel_functor<
 
 template <arithmetic_binary_operator Op, typename T, int N>
 class logical_operator_kernel_functor
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, Op>::type, N> {};
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {};
 
 template <typename T, int N>
 class logical_operator_kernel_functor<arithmetic_binary_operator::logical_and,
                                       T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T,
-                               arithmetic_binary_operator::logical_and>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::logical_and>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(&&) }
 };
 
 template <typename T, int N>
 class logical_operator_kernel_functor<arithmetic_binary_operator::logical_or, T,
                                       N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T, arithmetic_binary_operator::logical_or>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::logical_or>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_BINARY_OP_KERNEL_BODY(||) }
 };
 
 template <typename T, int N>
 class logical_operator_kernel_functor<arithmetic_binary_operator::logical_not,
                                       T, N>
-    : public arithmetic_binary_operator_kernel_functor_base<
-          typename result_type<T,
-                               arithmetic_binary_operator::logical_not>::type,
-          N> {
+    : public arithmetic_binary_special_operator_kernel_functor_base<T, N> {
  public:
-  using arithmetic_binary_operator_kernel_functor_base<
-      typename result_type<T, arithmetic_binary_operator::logical_not>::type,
-      N>::arithmetic_binary_operator_kernel_functor_base;
+  using arithmetic_binary_special_operator_kernel_functor_base<
+      T, N>::arithmetic_binary_special_operator_kernel_functor_base;
   void operator()() const { CHECK_UNARY_OP_KERNEL_BODY(!) }
 };
 

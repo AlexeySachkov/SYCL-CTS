@@ -481,16 +481,20 @@ void check_all_operators() {
         bitwise_assignment_binary_ops);
   }
 
-  // FIXME: those should be supported for floating-point, but we don't support
-  // them yet at intel/llvm.
+  auto logical_ops = value_pack<
+      arithmetic_binary_operator, arithmetic_binary_operator::logical_and,
+      arithmetic_binary_operator::logical_or>::generate_named("operator&&",
+                                                              "operator||");
+  for_all_combinations<check_logical_operator, T,
+                       std::integral_constant<int, N>>(logical_ops);
+
+  // FIXME: due to bugs at intel/llvm we can't compile those yet, but they
+  // should be enabled for all types
   if constexpr (!std::is_floating_point_v<T> &&
                 !std::is_same_v<T, sycl::half>) {
     auto logical_ops = value_pack<
-        arithmetic_binary_operator, arithmetic_binary_operator::logical_and,
-        arithmetic_binary_operator::logical_or,
-        arithmetic_binary_operator::logical_not>::generate_named("operator&&",
-                                                                 "operator||",
-                                                                 "operator!");
+        arithmetic_binary_operator,
+        arithmetic_binary_operator::logical_not>::generate_named("operator!");
     for_all_combinations<check_logical_operator, T,
                          std::integral_constant<int, N>>(logical_ops);
   }
