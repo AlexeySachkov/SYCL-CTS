@@ -12,7 +12,15 @@
 #include <sstream>
 
 #include <catch2/catch_tostring.hpp>
+
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/index_space.hpp>
+#include <sycl/atomic_ref.hpp>
+#include <sycl/accessor.hpp>
+#include <sycl/runtime.hpp> // aspect?
+#endif
 
 namespace Catch {
 template <int Dimensions>

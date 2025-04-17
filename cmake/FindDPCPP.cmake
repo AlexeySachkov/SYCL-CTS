@@ -43,6 +43,7 @@ set(CMAKE_CXX_FLAGS "${DPCPP_FP_FLAG} ${CMAKE_CXX_FLAGS}")
 
 # Disable range rounding feature to reduce # of SYCL kernels.
 set(CMAKE_CXX_FLAGS "-D__SYCL_DISABLE_PARALLEL_FOR_RANGE_ROUNDING__ ${CMAKE_CXX_FLAGS}")
+add_definitions("-DSYCL_KHR_MODULARIZED_HEADERS")
 
 # Set flag to allow linking of large device code files. This option is currently
 # not available on Windows.

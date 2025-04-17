@@ -22,7 +22,17 @@
 #ifndef __SYCLCTS_TESTS_COMMON_COMMON_H
 #define __SYCLCTS_TESTS_COMMON_COMMON_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/half.hpp>
+#include <sycl/vec.hpp>
+#include <sycl/marray.hpp>
+#include <sycl/runtime.hpp>
+#include <sycl/queue.hpp>
+#include <sycl/kernel_bundle.hpp>
+#include <sycl/index_space.hpp>
+#endif
 
 #include <catch2/catch_test_macros.hpp>
 

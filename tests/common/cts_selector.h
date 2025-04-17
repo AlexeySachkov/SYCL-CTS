@@ -22,7 +22,11 @@
 #ifndef __SYCLCTS_TESTS_COMMON_CTS_SELECTOR_H
 #define __SYCLCTS_TESTS_COMMON_CTS_SELECTOR_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/runtime.hpp>
+#endif
 
 #include "../../util/device_manager.h"
 

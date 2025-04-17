@@ -23,7 +23,11 @@
 #ifndef __SYCLCTS_TESTS_COMMON_COMMON_VEC_H
 #define __SYCLCTS_TESTS_COMMON_COMMON_VEC_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/vec.hpp>
+#endif
 
 #include "../../util/accuracy.h"
 #include "../../util/math_reference.h"

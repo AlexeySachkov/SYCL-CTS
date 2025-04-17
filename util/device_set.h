@@ -10,7 +10,8 @@
 #ifndef __SYCLCTS_UTIL_DEVICE_SET_H
 #define __SYCLCTS_UTIL_DEVICE_SET_H
 
-#include "../tests/common/common.h"
+#include <sycl/runtime.hpp>
+
 #include "kernel_restrictions.h"
 
 #include <string>

@@ -22,7 +22,11 @@
 #ifndef __SYCLCTS_TESTS_COMMON_CTS_ASYNC_HANDLER_H
 #define __SYCLCTS_TESTS_COMMON_CTS_ASYNC_HANDLER_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/async_handler.hpp>
+#endif
 
 // Change of async handler can affect on tests of optional kernel features
 struct cts_async_handler {

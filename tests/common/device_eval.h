@@ -21,7 +21,7 @@
 #ifndef __SYCLCTS_TESTS_COMMON_DEVICE_EVAL_H
 #define __SYCLCTS_TESTS_COMMON_DEVICE_EVAL_H
 
-#include <sycl/sycl.hpp>
+#include "get_cts_object.h"
 
 /** Variadic parameter is the kernel name. */
 #define DEVICE_EVAL_T(T, expr, ...)                                 \

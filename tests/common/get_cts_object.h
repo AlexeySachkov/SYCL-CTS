@@ -22,7 +22,14 @@
 #ifndef __SYCLCTS_TESTS_COMMON_GET_CTS_OBJECT_H
 #define __SYCLCTS_TESTS_COMMON_GET_CTS_OBJECT_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/runtime.hpp>
+#include <sycl/queue.hpp>
+#include <sycl/kernel.hpp>
+#include <sycl/index_space.hpp>
+#endif
 
 #include "../common/cts_async_handler.h"
 #include "../common/cts_selector.h"
