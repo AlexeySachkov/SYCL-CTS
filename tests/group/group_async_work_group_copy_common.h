@@ -9,6 +9,13 @@
 #ifndef SYCL_1_2_1_TESTS_GROUP_ASYNC_WORK_GROUP_COPY_COMMON_H
 #define SYCL_1_2_1_TESTS_GROUP_ASYNC_WORK_GROUP_COPY_COMMON_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/groups>
+#include <sycl/khr/includes/queue>
+#endif
+
 #include "../common/common.h"
 #include "../common/async_work_group_copy.h"
 #include "../common/invoke.h"

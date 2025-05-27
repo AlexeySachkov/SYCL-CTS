@@ -25,7 +25,7 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/async_handler.hpp>
+#include <sycl/khr/includes/exception>
 #endif
 
 // Change of async handler can affect on tests of optional kernel features

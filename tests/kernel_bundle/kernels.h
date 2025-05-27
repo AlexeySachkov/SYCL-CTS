@@ -9,6 +9,15 @@
 #ifndef __SYCLCTS_TESTS_KERNELS_H
 #define __SYCLCTS_TESTS_KERNELS_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/atomic>
+#endif
+
 #include "../../util/kernel_restrictions.h"
 #include "../common/common.h"
 #include <stdint.h>

@@ -13,6 +13,7 @@
 #include <sycl/sycl.hpp>
 #else
 #include <sycl/khr/includes/half>
+#include <sycl/khr/includes/functional>
 #endif
 
 #include <climits>

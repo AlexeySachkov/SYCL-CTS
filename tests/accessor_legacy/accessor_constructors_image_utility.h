@@ -24,6 +24,12 @@
 #ifndef SYCL_1_2_1_TESTS_ACCESSOR_ACCESSOR_CONSTRUCTORS_IMAGE_UTILITY_H
 #define SYCL_1_2_1_TESTS_ACCESSOR_ACCESSOR_CONSTRUCTORS_IMAGE_UTILITY_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/images>
+#endif
+
 #include "../common/common.h"
 #include "accessor_constructors_utility.h"
 

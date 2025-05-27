@@ -26,6 +26,8 @@
 #include <sycl/sycl.hpp>
 #else
 #include <sycl/khr/includes/half>
+#include <sycl/khr/includes/vec>
+#include <sycl/khr/includes/marray>
 #endif
 
 #include "./../oclmath/reference_math.h"

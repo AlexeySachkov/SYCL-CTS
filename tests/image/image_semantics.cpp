@@ -18,6 +18,13 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/image>
+#endif
+
 #include "../common/common.h"
 #include "../common/disabled_for_test_case.h"
 #include "../common/semantics_reference.h"

@@ -21,6 +21,17 @@
 //  Provide checks that ranged accessor still creates a requisite for the entire
 //  underlying buffer
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/math>
+#endif
+
 #include "../common/get_cts_object.h"
 #include "catch2/catch_test_macros.hpp"
 

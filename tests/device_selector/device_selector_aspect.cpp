@@ -18,6 +18,13 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/type_traits>
+#endif
+
 #include "../common/common.h"
 #include "../common/type_coverage.h"
 

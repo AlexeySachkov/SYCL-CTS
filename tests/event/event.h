@@ -21,6 +21,13 @@
 #ifndef SYCL_CTS_EVENT_EVENT_H
 #define SYCL_CTS_EVENT_EVENT_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/event>
+#include <sycl/khr/includes/queue>
+#endif
+
 #include "../common/common.h"
 
 #include <future>

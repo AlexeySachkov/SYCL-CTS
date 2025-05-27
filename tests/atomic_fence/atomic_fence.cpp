@@ -19,6 +19,14 @@
 //  Provides sycl::atomic_fence function test
 //
 *******************************************************************************/
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/atomic>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/device>
+#endif
+
 #include "../common/disabled_for_test_case.h"
 #include "catch2/catch_test_macros.hpp"
 

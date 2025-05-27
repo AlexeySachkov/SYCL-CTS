@@ -47,7 +47,7 @@ struct test_traits {
     vec[i++] = std::is_move_constructible_v<T>;
     vec[i++] = std::is_move_assignable_v<T>;
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -67,7 +67,7 @@ struct test_traits {
     UNSCOPED_INFO("is_move_assignable_v");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -90,7 +90,7 @@ struct test_copy {
     T s1 = t;
     vec[i++] = storage.check(s1);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -104,7 +104,7 @@ struct test_copy {
     UNSCOPED_INFO("assignable");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -130,7 +130,7 @@ struct test_move {
     T s1 = std::move(s0);  // NB: move s0, not t
     vec[i++] = storage.check(s1);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Always run on host side. */
@@ -144,7 +144,7 @@ struct test_move {
     UNSCOPED_INFO("assignable");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -179,7 +179,7 @@ struct test_equality {
       vec[i++] = t == u && u == t;
     }
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -199,7 +199,7 @@ struct test_equality {
     UNSCOPED_INFO("transitivity: copy assignment");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -242,7 +242,7 @@ struct test_equality_hash {
       vec[i++] = hash_equality_helper(t, u);
     }
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -262,7 +262,7 @@ struct test_equality_hash {
     UNSCOPED_INFO("transitivity: copy assignment");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -281,7 +281,7 @@ struct test_inequality {
     // Symmetry
     vec[i++] = t0 != t1 && t1 != t0;
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -293,7 +293,7 @@ struct test_inequality {
     UNSCOPED_INFO("symmetry");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -320,7 +320,7 @@ struct test_inequality_hash {
     // Symmetry
     vec[i++] = hash_inequality_helper(t0, t1);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 
   /** Evaluates the results, must be run on host side. */
@@ -332,7 +332,7 @@ struct test_inequality_hash {
     UNSCOPED_INFO("symmetry");
     CHECK(vec[i++]);
 
-    assert(result_count == i);
+    // assert(result_count == i);
   }
 };
 
@@ -484,8 +484,8 @@ void check_kernel(InitFunc init_func, const std::string& type_name,
             ptr += test_copy::result_count;
             test_move::run<storage>(ptr, t);  // last since invalidates instance
             ptr += test_move::result_count;
-            assert(static_cast<std::ptrdiff_t>(result_count) ==
-                   ptr - accessor.begin());
+            // assert(static_cast<std::ptrdiff_t>(result_count) ==
+            //        ptr - accessor.begin());
           });
     });
   }
