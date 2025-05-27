@@ -10,7 +10,11 @@
 #ifndef __SYCLCTS_UTIL_DEVICE_SET_H
 #define __SYCLCTS_UTIL_DEVICE_SET_H
 
-#include <sycl/runtime.hpp>
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/device>
+#endif
 
 #include "kernel_restrictions.h"
 

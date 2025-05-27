@@ -9,7 +9,11 @@
 #ifndef __SYCLCTS_UTIL_EXTENSIONS_H
 #define __SYCLCTS_UTIL_EXTENSIONS_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/device>
+#endif
 #include "logger.h"
 
 #include <string>

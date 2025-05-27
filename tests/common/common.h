@@ -25,13 +25,11 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/half.hpp>
-#include <sycl/vec.hpp>
-#include <sycl/marray.hpp>
-#include <sycl/runtime.hpp>
-#include <sycl/queue.hpp>
-#include <sycl/kernel_bundle.hpp>
-#include <sycl/index_space.hpp>
+#include <sycl/khr/includes/half>
+#include <sycl/khr/includes/vec>
+#include <sycl/khr/includes/marray>
+#include <sycl/khr/includes/kernel_bundle>
+#include <sycl/khr/includes/index_space>
 #endif
 
 #include <catch2/catch_test_macros.hpp>

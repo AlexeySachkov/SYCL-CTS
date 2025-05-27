@@ -22,7 +22,11 @@
 #ifndef __SYCLCTS_UTIL_MATH_REFERENCE_H
 #define __SYCLCTS_UTIL_MATH_REFERENCE_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/half>
+#endif
 
 #include "./../oclmath/reference_math.h"
 #include "./math_helper.h"

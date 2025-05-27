@@ -25,7 +25,8 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/runtime.hpp>
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/platform>
 #endif
 
 #include "../../util/device_manager.h"

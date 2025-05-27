@@ -12,7 +12,6 @@
 #ifdef SYCL_BACKEND_CUDA
 #include <cuda.h>
 #endif
-#include <sycl/sycl.hpp>
 
 inline void cuda_check(CUresult error_code) {
   if (error_code != CUDA_SUCCESS) {

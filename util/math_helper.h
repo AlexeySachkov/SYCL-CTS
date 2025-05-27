@@ -25,7 +25,11 @@
 #include <map>
 #include <climits>
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/half>
+#endif
 
 #include "../util/stl.h"
 #include "./../oclmath/mt19937.h"

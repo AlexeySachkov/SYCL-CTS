@@ -11,7 +11,11 @@
 
 #include <catch2/catch_tostring.hpp>
 #include <catch2/matchers/catch_matchers_templated.hpp>
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/exception>
+#endif
 
 #include "../tests/common/macros.h" // To ensure FAIL macro replaced properly
 #include "conversion.h"

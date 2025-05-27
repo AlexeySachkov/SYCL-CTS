@@ -9,8 +9,13 @@
 #ifndef __SYCLCTS_UTIL_TYPE_TRAITS_H
 #define __SYCLCTS_UTIL_TYPE_TRAITS_H
 
-#include <climits>
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/half>
+#endif
+
+#include <climits>
 #include <type_traits>
 
 namespace {

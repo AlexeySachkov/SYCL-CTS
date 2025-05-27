@@ -22,7 +22,11 @@
 #ifndef __SYCLCTS_UTIL_TYPE_NAMES_H
 #define __SYCLCTS_UTIL_TYPE_NAMES_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/vec>
+#endif
 
 #include "stl.h"
 

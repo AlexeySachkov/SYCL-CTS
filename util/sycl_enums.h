@@ -10,7 +10,12 @@
 #define __SYCLCTS_UTIL_SYCL_ENUMS_H
 
 #include <catch2/catch_tostring.hpp>
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/exception>
+#include <sycl/khr/includes/device>
+#endif
 
 CATCH_REGISTER_ENUM(sycl::errc, sycl::errc::success, sycl::errc::runtime,
                     sycl::errc::kernel, sycl::errc::accessor,

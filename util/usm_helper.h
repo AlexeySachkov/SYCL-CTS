@@ -11,7 +11,12 @@
 
 #include <memory>
 #include <string_view>
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/queue>
+#endif
 
 namespace usm_helper {
 

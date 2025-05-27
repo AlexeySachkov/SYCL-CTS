@@ -8,7 +8,11 @@
 
 #include "test_base.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/exception>
+#endif
 
 #include "../tests/common/macros.h"
 #include "logger.h"

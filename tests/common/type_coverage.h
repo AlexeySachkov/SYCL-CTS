@@ -32,8 +32,8 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/vec.hpp>
-#include <sycl/marray.hpp>
+#include <sycl/khr/includes/vec>
+#include <sycl/khr/includes/marray>
 #endif
 
 #include "../../util/type_traits.h"

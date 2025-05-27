@@ -25,10 +25,12 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/runtime.hpp>
-#include <sycl/queue.hpp>
-#include <sycl/kernel.hpp>
-#include <sycl/index_space.hpp>
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/context>
+#include <sycl/khr/includes/platform>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/kernel_bundle>
+#include <sycl/khr/includes/index_space>
 #endif
 
 #include "../common/cts_async_handler.h"

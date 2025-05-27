@@ -20,7 +20,11 @@
 #include <utility>
 #include <variant>
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/vec>
+#endif
 
 #include "../../util/type_traits.h"
 
