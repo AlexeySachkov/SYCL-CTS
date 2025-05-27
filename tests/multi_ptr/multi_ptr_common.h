@@ -9,6 +9,15 @@
 #ifndef SYCL_CTS_TEST_MULTI_PTR_MULTI_PTR_COMMON_H
 #define SYCL_CTS_TEST_MULTI_PTR_MULTI_PTR_COMMON_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/groups>
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/handler>
+#endif
+
 #include "../common/common.h"
 #include "../common/once_per_unit.h"
 #include "../common/type_coverage.h"

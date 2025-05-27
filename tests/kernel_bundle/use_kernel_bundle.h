@@ -9,6 +9,12 @@
 #ifndef __SYCLCTS_TESTS_USE_KERNEL_BUNDLE_H
 #define __SYCLCTS_TESTS_USE_KERNEL_BUNDLE_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/kernel_bundle>
+#endif
+
 #include "../../util/exceptions.h"
 #include "../common/common.h"
 #include "../common/type_coverage.h"

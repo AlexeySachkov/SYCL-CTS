@@ -23,6 +23,17 @@
 
 #ifndef SYCL_CTS_LOCAL_ACCESSOR_ACCESS_AMONG_WORK_ITEMS_H
 #define SYCL_CTS_LOCAL_ACCESSOR_ACCESS_AMONG_WORK_ITEMS_H
+
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/groups>
+#include <sycl/khr/includes/index_space>
+#endif
+
 #include "../accessor_basic/accessor_common.h"
 
 namespace local_accessor_access_among_work_items {

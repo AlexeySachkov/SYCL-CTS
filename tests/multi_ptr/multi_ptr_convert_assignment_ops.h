@@ -23,6 +23,7 @@
 #ifndef __SYCLCTS_TESTS_MULTI_PTR_CONVERT_ASSIGN_OPS_H
 #define __SYCLCTS_TESTS_MULTI_PTR_CONVERT_ASSIGN_OPS_H
 
+
 #include "../common/common.h"
 
 #include "../common/section_name_builder.h"

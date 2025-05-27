@@ -10,6 +10,17 @@
 #ifndef __SYCLCTS_TESTS_COMMON_ASYNC_WORK_GROUP_COPY_H
 #define __SYCLCTS_TESTS_COMMON_ASYNC_WORK_GROUP_COPY_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/groups>
+#include <sycl/khr/includes/multi_ptr>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/index_space>
+#endif
+
 #include "../common/common.h"
 #include "../common/once_per_unit.h"
 #include "../common/type_coverage.h"

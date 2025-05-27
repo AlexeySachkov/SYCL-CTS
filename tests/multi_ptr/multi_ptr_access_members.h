@@ -23,6 +23,16 @@
 #ifndef __SYCLCTS_TESTS_MULTI_PTR_ACCESS_MEMBERS_OPS_H
 #define __SYCLCTS_TESTS_MULTI_PTR_ACCESS_MEMBERS_OPS_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/multi_ptr>
+#include <sycl/khr/includes/groups>
+#endif
+
 #include "../common/common.h"
 
 #include "../common/section_name_builder.h"

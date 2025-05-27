@@ -19,6 +19,12 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/groups>
+#endif
+
 #include "../common/common.h"
 #include "../common/invoke.h"
 #include "../common/semantics_by_value.h"

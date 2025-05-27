@@ -23,6 +23,14 @@
 #ifndef __SYCL_CTS_TEST_REDUCTION_COMMON_H
 #define __SYCL_CTS_TEST_REDUCTION_COMMON_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/reduction>
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/index_space>
+#endif
+
 #include "../common/common.h"
 #include "../common/type_coverage.h"
 // to use size_t

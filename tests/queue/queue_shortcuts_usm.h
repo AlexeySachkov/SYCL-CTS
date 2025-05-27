@@ -21,6 +21,14 @@
 #ifndef SYCL_CTS_QUEUE_QUEUE_SHORTCUTS_USM_H
 #define SYCL_CTS_QUEUE_QUEUE_SHORTCUTS_USM_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/handler>
+#endif
+
 #include <utility>
 
 #include "../common/common.h"

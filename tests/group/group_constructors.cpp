@@ -19,6 +19,16 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/groups>
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/device>
+#endif
+
 #include "../../util/array.h"
 #include "../common/common.h"
 #include "../common/invoke.h"

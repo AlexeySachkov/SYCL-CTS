@@ -19,6 +19,15 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/index_space>
+#endif
+
 #include "../common/common.h"
 
 #define TEST_NAME range_api

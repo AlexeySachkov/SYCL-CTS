@@ -18,6 +18,17 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/math>
+#endif
+
 #include "../common/common.h"
 #include "../common/disabled_for_test_case.h"
 

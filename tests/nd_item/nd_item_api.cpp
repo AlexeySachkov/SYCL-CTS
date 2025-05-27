@@ -19,6 +19,17 @@
 //
 *******************************************************************************/
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/groups>
+#endif
+
 #include "../common/common.h"
 
 #include <algorithm>

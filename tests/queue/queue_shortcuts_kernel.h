@@ -21,6 +21,14 @@
 #ifndef SYCL_CTS_QUEUE_QUEUE_SHORTCUTS_KERNEL_H
 #define SYCL_CTS_QUEUE_QUEUE_SHORTCUTS_KERNEL_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/usm>
+#include <sycl/khr/includes/handler>
+#endif
+
 #include "../common/common.h"
 #include "../common/get_cts_object.h"
 
