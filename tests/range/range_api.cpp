@@ -26,6 +26,8 @@
 #include <sycl/khr/includes/buffer>
 #include <sycl/khr/includes/handler>
 #include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/math>
+#include <sycl/khr/includes/usm>
 #endif
 
 #include "../common/common.h"

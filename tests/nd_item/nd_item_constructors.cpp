@@ -23,6 +23,15 @@
 #include "../common/common.h"
 #include "../common/invoke.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/groups>
+#endif
+
 #include <array>
 
 #define TEST_NAME nd_item_constructors

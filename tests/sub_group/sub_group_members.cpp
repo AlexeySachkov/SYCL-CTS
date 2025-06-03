@@ -25,6 +25,12 @@
 #include "../common/once_per_unit.h"
 #include "../common/range_index_space_id.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/groups>
+#endif
+
 namespace sub_group_members {
 
 void run_test() {

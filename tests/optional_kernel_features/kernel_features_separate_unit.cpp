@@ -9,6 +9,15 @@
 
 #include "../common/common.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/half>
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/atomic>
+#endif
+
 #ifdef SYCL_EXTERNAL
 namespace kernel_features_common {
 template <typename T, sycl::aspect aspect>

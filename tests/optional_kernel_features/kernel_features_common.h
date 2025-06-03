@@ -25,6 +25,17 @@
 #include "../../util/sycl_exceptions.h"
 #include "../common/common.h"
 #include "catch2/matchers/catch_matchers.hpp"
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/device>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/atomic>
+#endif
+
 namespace kernel_features_common {
 // FIXME: re-enable compilation with AdaptiveCpp when `sycl::errc` is supported
 #if !SYCL_CTS_COMPILING_WITH_ADAPTIVECPP

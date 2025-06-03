@@ -26,7 +26,7 @@
 #ifndef SYCL_KHR_MODULARIZED_HEADERS
 #include <sycl/sycl.hpp>
 #else
-#include <sycl/vec.hpp>
+#include <sycl/khr/includes/vec>
 #endif
 
 #include "../../util/accuracy.h"

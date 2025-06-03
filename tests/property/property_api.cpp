@@ -21,6 +21,15 @@
 #include "../common/common.h"
 #include "../common/type_coverage.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/accessor>
+#include <sycl/khr/includes/image>
+#include <sycl/khr/includes/buffer>
+#include <sycl/khr/includes/reduction>
+#endif
+
 #include <string>
 #include <type_traits>
 

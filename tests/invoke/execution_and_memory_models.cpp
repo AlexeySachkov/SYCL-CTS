@@ -26,6 +26,7 @@
 #include <sycl/khr/includes/buffer>
 #include <sycl/khr/includes/handler>
 #include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/atomic>
 #include <sycl/khr/includes/math>
 #endif
 

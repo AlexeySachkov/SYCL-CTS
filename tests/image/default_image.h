@@ -21,6 +21,13 @@
 #ifndef SYCL_CTS_IMAGE_DEFAULT_IMAGE_H
 #define SYCL_CTS_IMAGE_DEFAULT_IMAGE_H
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/vec>
+#include <sycl/khr/includes/image>
+#endif
+
 #if !SYCL_CTS_COMPILING_WITH_ADAPTIVECPP
 
 /**

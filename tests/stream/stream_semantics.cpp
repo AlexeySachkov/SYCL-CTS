@@ -21,6 +21,14 @@
 #include "../common/common.h"
 #include "../common/semantics_reference.h"
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/stream>
+#endif
+
 struct storage {
   std::size_t size;
   std::size_t max_statement_size;

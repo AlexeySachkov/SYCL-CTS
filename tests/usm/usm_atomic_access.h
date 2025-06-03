@@ -18,6 +18,16 @@
 #include <thread>
 #include <type_traits>
 
+#ifndef SYCL_KHR_MODULARIZED_HEADERS
+#include <sycl/sycl.hpp>
+#else
+#include <sycl/khr/includes/queue>
+#include <sycl/khr/includes/handler>
+#include <sycl/khr/includes/index_space>
+#include <sycl/khr/includes/atomic>
+#include <sycl/khr/includes/usm>
+#endif
+
 namespace usm_atomic_access {
 
 inline auto get_nondouble_scalar_types() {
