@@ -23,6 +23,8 @@
 
 #include <sycl/khr/includes/device.hpp>
 
+#include "utils.hpp"
+
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -39,6 +41,12 @@ TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
   constexpr bool macroIsDefined = false;
 #endif
   STATIC_REQUIRE(macroIsDefined);
+}
+
+TEST_CASE(
+    "The device class is a complete type"
+    "[khr_includes][device]") {
+  STATIC_REQUIRE(is_complete_class_v<sycl::device>);
 }
 
 TEMPLATE_TEST_CASE(

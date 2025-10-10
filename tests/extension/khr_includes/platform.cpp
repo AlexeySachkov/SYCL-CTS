@@ -22,6 +22,8 @@
 
 #include <sycl/khr/includes/platform.hpp>
 
+#include "utils.hpp"
+
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -37,6 +39,12 @@ TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
   constexpr bool macroIsDefined = false;
 #endif
   STATIC_REQUIRE(macroIsDefined);
+}
+
+TEST_CASE(
+    "The platform class is a complete type"
+    "[khr_includes][platform]") {
+  STATIC_REQUIRE(is_complete_class_v<sycl::platform>);
 }
 
 // TODO: check that methods are defined as 'const'

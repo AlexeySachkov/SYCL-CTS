@@ -23,6 +23,8 @@
 
 #include <sycl/khr/includes/buffer.hpp>
 
+#include "utils.hpp"
+
 #include <type_traits>
 
 namespace khr_includes::tests {
@@ -37,10 +39,37 @@ TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
   STATIC_REQUIRE(macroIsDefined);
 }
 
+template <typename T, int Dimensions,
+          typename AllocatorT = sycl::buffer_allocator<std::remove_const_t<T>>>
+struct BufferTemplateArgs {
+  using value_type = T;
+  static constexpr int dimensions = Dimensions;
+  using allocator_type = AllocatorT;
+};
+
 namespace {
   struct Foo {
     int a; double b; int c;
   };
+}
+
+TEMPLATE_TEST_CASE("The buffer_allocator is a complete type",
+                   "[khr_includes][buffer_allocator]", int, long long, Foo) {
+  STATIC_REQUIRE(is_complete_v<sycl::buffer_allocator<TestType>>);
+}
+
+TEMPLATE_TEST_CASE("The buffer class is a complete type",
+                   "[khr_includes][buffer]", (BufferTemplateArgs<int, 1>),
+                   (BufferTemplateArgs<int, 2>), (BufferTemplateArgs<int, 3>),
+                   (BufferTemplateArgs<long long, 1>),
+                   (BufferTemplateArgs<long long, 2>),
+                   (BufferTemplateArgs<long long, 3>),
+                   (BufferTemplateArgs<Foo, 1>), (BufferTemplateArgs<Foo, 2>),
+                   (BufferTemplateArgs<Foo, 3>)) {
+  using T = typename TestType::value_type;
+  constexpr int Dimensions = TestType::dimensions;
+  using AllocatorT = typename TestType::allocator_type;
+  STATIC_REQUIRE(is_complete_class_v<sycl::buffer<T, Dimensions, AllocatorT>>);
 }
 
 TEMPLATE_TEST_CASE("the implementation defines member types correctly",
