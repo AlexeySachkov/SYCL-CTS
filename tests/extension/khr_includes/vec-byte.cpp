@@ -20,24 +20,20 @@
 
 #include <catch2/catch_test_macros.hpp>
 
-#include <sycl/khr/includes/stream.hpp>
+#include <sycl/khr/includes/byte.hpp>
+#include <sycl/khr/includes/vec.hpp>
 
 #include "utils.hpp"
 
 namespace khr_includes::tests {
 
-TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
-          "[khr_includes][stream]") {
-#ifdef SYCL_KHR_INCLUDES
-  constexpr bool macroIsDefined = true;
-#else
-  constexpr bool macroIsDefined = false;
-#endif
-  STATIC_REQUIRE(macroIsDefined);
-}
-
-TEST_CASE("the stream class is a complete type", "[khr_includes][stream]") {
-  STATIC_REQUIRE(is_complete_class_v<sycl::stream>);
+TEST_CASE("The vec<byte> class is a complete type", "[khr_includes][vec]") {
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 1>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 2>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 3>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 4>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 8>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<sycl::byte, 16>>);
 }
 
 }  // namespace khr_includes::tests

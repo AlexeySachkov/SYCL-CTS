@@ -22,16 +22,22 @@
 
 #include <sycl/khr/includes/queue.hpp>
 
+#include "utils.hpp"
+
 namespace khr_includes::tests {
 
 TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
-          "[khr_includes][device]") {
+          "[khr_includes][queue]") {
 #ifdef SYCL_KHR_INCLUDES
   constexpr bool macroIsDefined = true;
 #else
   constexpr bool macroIsDefined = false;
 #endif
   STATIC_REQUIRE(macroIsDefined);
+}
+
+TEST_CASE("the queue class is a complete type", "[khr_includes][queue]") {
+  STATIC_REQUIRE(is_complete_class_v<sycl::queue>);
 }
 
 }  // namespace khr_includes::tests

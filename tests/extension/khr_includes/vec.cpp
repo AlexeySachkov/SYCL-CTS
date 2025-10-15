@@ -18,20 +18,38 @@
 //
 *******************************************************************************/
 
+#include <catch2/catch_template_test_macros.hpp>
 #include <catch2/catch_test_macros.hpp>
 
 #include <sycl/khr/includes/vec.hpp>
 
+#include "utils.hpp"
+
 namespace khr_includes::tests {
 
 TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
-          "[khr_includes][device]") {
+          "[khr_includes][vec]") {
 #ifdef SYCL_KHR_INCLUDES
   constexpr bool macroIsDefined = true;
 #else
   constexpr bool macroIsDefined = false;
 #endif
   STATIC_REQUIRE(macroIsDefined);
+}
+
+TEMPLATE_TEST_CASE("The vec class is a complete type", "[khr_includes][vec]",
+                   bool, char, signed char, unsigned char, short int,
+                   unsigned short int, int, unsigned int, long int,
+                   unsigned long int, long long int, unsigned long long int,
+                   float, double
+                   // TODO: sycl::half, sycl::byte
+) {
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 1>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 2>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 3>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 4>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 8>>);
+  STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 16>>);
 }
 
 }  // namespace khr_includes::tests
