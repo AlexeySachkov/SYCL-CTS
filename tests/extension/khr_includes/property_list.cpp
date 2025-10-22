@@ -22,16 +22,23 @@
 
 #include <sycl/khr/includes/property_list.hpp>
 
+#include "utils.hpp"
+
 namespace khr_includes::tests {
 
 TEST_CASE("the implementation defines the SYCL_KHR_INCLUDES macro",
-          "[khr_includes][device]") {
+          "[khr_includes][property_list]") {
 #ifdef SYCL_KHR_INCLUDES
   constexpr bool macroIsDefined = true;
 #else
   constexpr bool macroIsDefined = false;
 #endif
   STATIC_REQUIRE(macroIsDefined);
+}
+
+TEST_CASE("the property_list class is a complete type",
+          "[khr_includes][property_list]") {
+  STATIC_REQUIRE(is_complete_class_v<sycl::property_list>);
 }
 
 }  // namespace khr_includes::tests

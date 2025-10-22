@@ -42,7 +42,6 @@ TEMPLATE_TEST_CASE("The vec class is a complete type", "[khr_includes][vec]",
                    unsigned short int, int, unsigned int, long int,
                    unsigned long int, long long int, unsigned long long int,
                    float, double
-                   // TODO: sycl::half, sycl::byte
 ) {
   STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 1>>);
   STATIC_REQUIRE(is_complete_class_v<sycl::vec<TestType, 2>>);

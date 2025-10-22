@@ -52,7 +52,6 @@ TEMPLATE_TEST_CASE("The marray class is a complete type",
                    unsigned char, short int, unsigned short int, int,
                    unsigned int, long int, unsigned long int, long long int,
                    unsigned long long int, float, double, Foo
-                   // TODO: sycl::half, sycl::byte
 ) {
   STATIC_REQUIRE(is_complete_class_v<sycl::marray<TestType, 1>>);
   STATIC_REQUIRE(is_complete_class_v<sycl::marray<TestType, 2>>);
